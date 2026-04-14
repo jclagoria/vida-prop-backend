@@ -1,0 +1,14 @@
+/.agents/
+/.claude/
+/.idea/
+/.opencode/
+/.vscode/
+/.windsurf/
+/dist/
+/logs/
+/docs/
+/skills/
+/tmp/
+/.env
+/node_modules/
+/skills-lock.json

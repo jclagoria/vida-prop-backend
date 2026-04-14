@@ -1,0 +1,79 @@
+# .windsurfrules
+# Project: habitat-backend-service
+
+## Technical Stack (exact according to package.json)
+- Framework: NestJS 11.1.x (latest version)
+- Language: TypeScript (strict mode recommended)
+- ORM: Prisma 7.7.0 (uses `@prisma/client`)
+- Package Manager: **pnpm** (version 10.28.2) -> always use `pnpm` to install, add or run scripts
+- Formatter / Linter: **Biome** (@biomejs/biome 2.4.10) -> never use ESLint nor Prettier
+- Authentication: passport + passport-jwt + passport-local + @nestjs/jwt + bcrypt
+- Validation: class-validator + class-transformer
+- API Documentation: @nestjs/swagger
+- Other key dependencies: @nestjs/config, @nestjs/platform-express, reflect-metadata, rxjs
+
+## Mandatory Rules for File Creation (Very Important)
+
+- **ALWAYS** create new files with **`.ts`** extension (TypeScript).
+- **NEVER** create files with `.js`, `.jsx` or `.mjs` extension.
+- When asked to create a new file (whether by Trigger Suggestion, Command, or from Cascade), by default use:
+  - `.controller.ts`
+  - `.service.ts`
+  - `.module.ts`
+  - `.dto.ts`
+  - `.entity.ts`
+  - `.guard.ts`
+  - `.interceptor.ts`
+  - etc.
+- If the user doesn't specify the extension, assume **`.ts`**.
+- In case someone says "create a JavaScript file", kindly correct them and create the file in **TypeScript** because this is a 100% TypeScript + NestJS project.
+
+## File Naming Rules
+- Use **kebab-case** for file names (eg: `users.controller.ts`, `auth.service.ts`, `create-user.dto.ts`).
+- Classes inside the file must be in **PascalCase**.
+- For DTOs: `create-user.dto.ts`, `update-user.dto.ts`, etc.
+
+## Mandatory Code Rules
+
+- **Always** use `pnpm install`, `pnpm add`, `pnpm run build`, etc.
+- Recommended structure:
+  - `src/`
+    - `modules/` or domain folders (users, auth, habitat, etc.)
+    - `common/` (filters, guards, interceptors, decorators)
+    - `prisma/` (PrismaService)
+    - `config/`
+- **Prisma**:
+  - Use `PrismaService` as singleton injectable (extends `PrismaClient` and implements `OnModuleInit` / `OnModuleDestroy`).
+  - Always import types from `@prisma/client`.
+  - Run `npx prisma generate` after changing the schema.
+- **NestJS**:
+  - Use decorators correctly: `@Controller`, `@Injectable`, `@Module`, `@UseGuards`, etc.
+  - In controllers: always add `@ApiTags`, `@ApiOperation`, `@ApiResponse` (Swagger).
+  - DTOs: use `class-validator` (IsString, IsEmail, IsOptional, etc.) + `class-transformer`.
+  - Never use `any`. Prefer strict types and Prisma-generated types.
+- **Style and Conventions**:
+  - **Always** format with Biome when saving.
+  - File names: `kebab-case` (eg: `users.controller.ts`, `auth.service.ts`).
+  - Classes and DTOs: `PascalCase`.
+  - Variables and methods: `camelCase`.
+  - Constants: `UPPER_SNAKE_CASE`.
+  - Imports automatically ordered by Biome.
+- **Security**:
+  - Use bcrypt for passwords.
+  - JWT for authentication.
+  - Helmet and CORS are already in dependencies -> keep them configured.
+
+## Useful Commands for Cascade
+- `pnpm install`
+- `pnpm run build`
+- `npx prisma generate`
+- `npx prisma db push` or `npx prisma migrate dev`
+- `npx prisma studio`
+- `pnpm start:dev`
+
+## Quality Rules
+- Keep code clean, modular and testable.
+- Avoid heavy logic in controllers -> delegate to services.
+- Use Dependency Injection correctly.
+- Prefer early returns.
+- Add clear comments only

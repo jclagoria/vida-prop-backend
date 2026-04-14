@@ -1,0 +1,40 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
+  "vcs": { "enabled": false },
+  "files": {
+    "maxSize": 500000,
+    "ignoreUnknown": true,
+    "includes": [
+      "src/modules/auth/domain/**/*",
+      "src/modules/auth/application/**/*",
+      "src/modules/auth/infrastructure/**/*",
+      "tests/**/*"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "es5",
+      "semicolons": "asNeeded"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": { "noExplicitAny": "off" },
+      "complexity": { "noStaticOnlyClass": "off" },
+      "correctness": {
+        "noUnusedImports": "off",
+        "noUnusedFunctionParameters": "off"
+      },
+      "style": { "noNonNullAssertion": "off" }
+    }
+  }
+}
