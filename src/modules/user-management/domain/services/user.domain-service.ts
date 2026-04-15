@@ -1,11 +1,11 @@
 import { type Observable, of, throwError } from 'rxjs'
 import { map, switchMap } from 'rxjs/operators'
-import { User } from '../entities/user.entity'
-import { UserRole } from '../enums/user-role.enum'
-import type { IUserRepository } from '../interfaces/i-user.repository'
-import { Email } from '../value-objects/email.value-object'
-import { Password } from '../value-objects/password.value-object'
-import { UserId } from '../value-objects/user-id.value-object'
+import { User } from '@/modules/user-management/domain/entities/user.entity.js'
+import { UserRole } from '@/modules/user-management/domain/enums/user-role.enum.js'
+import type { IUserRepository } from '@/modules/user-management/domain/interfaces/i-user.repository.js'
+import { Email } from '@/modules/user-management/domain/value-objects/email.value-object.js'
+import { Password } from '@/modules/user-management/domain/value-objects/password.value-object.js'
+import { UserId } from '@/modules/user-management/domain/value-objects/user-id.value-object.js'
 
 export interface CreateUserParams {
   email: string

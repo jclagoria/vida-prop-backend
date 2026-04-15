@@ -1,13 +1,13 @@
 import { of } from 'rxjs'
 import { tap } from 'rxjs/operators'
-import { Invitation } from '../entities/invitation.entity'
-import { User } from '../entities/user.entity'
-import { InvitationStatus } from '../enums/invitation-status.enum'
-import { UserRole } from '../enums/user-role.enum'
-import type { IInvitationRepository } from '../interfaces/i-invitation.repository'
-import { Email } from '../value-objects/email.value-object'
-import { UserId } from '../value-objects/user-id.value-object'
-import { InvitationDomainService } from './invitation.domain-service'
+import { Invitation } from '@/modules/user-management/domain/entities/invitation.entity.js'
+import { User } from '@/modules/user-management/domain/entities/user.entity.js'
+import { InvitationStatus } from '@/modules/user-management/domain/enums/invitation-status.enum.js'
+import { UserRole } from '@/modules/user-management/domain/enums/user-role.enum.js'
+import type { IInvitationRepository } from '@/modules/user-management/domain/interfaces/i-invitation.repository.js'
+import { InvitationDomainService } from '@/modules/user-management/domain/services/invitation.domain-service.js'
+import { Email } from '@/modules/user-management/domain/value-objects/email.value-object.js'
+import { UserId } from '@/modules/user-management/domain/value-objects/user-id.value-object.js'
 
 describe('InvitationDomainService', () => {
   let invitationRepository: jest.Mocked<IInvitationRepository>
