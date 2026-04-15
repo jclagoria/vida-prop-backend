@@ -3,13 +3,7 @@
   "vcs": { "enabled": false },
   "files": {
     "maxSize": 500000,
-    "ignoreUnknown": true,
-    "includes": [
-      "src/modules/auth/domain/**/*",
-      "src/modules/auth/application/**/*",
-      "src/modules/auth/infrastructure/**/*",
-      "tests/**/*"
-    ]
+    "ignoreUnknown": true
   },
   "formatter": {
     "enabled": true,
