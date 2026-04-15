@@ -5,97 +5,31 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "./generated/prisma"
+  output   = "./generated"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-enum Country {
-  ES
-  PT
-  DE
-  FR
-  IT
-  GB
-  US
-  AR
-  MX
-  CO
-}
-
 enum UserRole {
   ADMIN
-  MANAGER
+  ACCOUNTANT
   SUPERINTENDENT
   OWNER
   TENANT
 }
 
-model User {
-  id                String     @id @default(cuid())
-  email             String     @unique
-  password         String
-  documentType     String     // DNI or NIE
-  documentNumber   String
-  firstName        String
-  lastName         String
-  role             UserRole
-  country          Country
-  assignedBuildingIds String[]  @default([])
-  isActive         Boolean    @default(true)
+model Users {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         UserRole
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
-
-  buildings       Building[] @relation("UserBuildings")
-  superintendentBuildings Building[] @relation("SuperintendentBuildings")
-  notifications   Notification[]
-  refreshTokens  RefreshToken[]
-
-  @@index([email])
-  @@map("users")
-}
-
-model Building {
-  id                String   @id @default(cuid())
-  name              String
-  address           String
-  city              String
-  country           String
-
-  userId           String?
-  user             User?    @relation("UserBuildings", fields: [userId], references: [id])
-
-  superintendentId   String?
-  superintendent    User?    @relation("SuperintendentBuildings", fields: [superintendentId], references: [id])
-
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  @@index([userId])
-  @@index([superintendentId])
-  @@map("buildings")
-}
-
-model Notification {
-  id       String  @id @default(cuid())
-  userId   String?
-  user    User?   @relation(fields: [userId], references: [id])
-
-  @@map("notifications")
-}
-
-model RefreshToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@index([userId])
-  @@index([token])
-  @@map("refresh_tokens")
+  @@index([role])
+  @@index([isActive])
+  @@map("User")
 }
