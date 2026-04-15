@@ -1,11 +1,11 @@
 import { type Observable, of, throwError } from 'rxjs'
 import { map, switchMap, tap } from 'rxjs/operators'
-import { Invitation } from '../entities/invitation.entity'
-import { InvitationStatus } from '../enums/invitation-status.enum'
-import type { UserRole } from '../enums/user-role.enum'
-import type { IInvitationRepository } from '../interfaces/i-invitation.repository'
-import { Email } from '../value-objects/email.value-object'
-import type { UserId } from '../value-objects/user-id.value-object'
+import { Invitation } from '@/modules/user-management/domain/entities/invitation.entity.js'
+import { InvitationStatus } from '@/modules/user-management/domain/enums/invitation-status.enum.js'
+import type { UserRole } from '@/modules/user-management/domain/enums/user-role.enum.js'
+import type { IInvitationRepository } from '@/modules/user-management/domain/interfaces/i-invitation.repository.js'
+import { Email } from '@/modules/user-management/domain/value-objects/email.value-object.js'
+import type { UserId } from '@/modules/user-management/domain/value-objects/user-id.value-object.js'
 
 export interface CreateInvitationParams {
   email: string
