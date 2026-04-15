@@ -3,13 +3,10 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/tests', '<rootDir>/src', '<rootDir>/scripts'],
   testMatch: ['**/*.spec.ts', '**/*.test.ts'],
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/main.ts',
-    '!**/*.module.ts',
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/main.ts', '!**/*.module.ts'],
   moduleNameMapper: {
+    '^@/(.*)\\.js$': '<rootDir>/src/$1',
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^@prisma/client$': '<rootDir>/prisma/generated/prisma/client',
+    '^@prisma/client$': '<rootDir>/prisma/generated/client',
   },
-};
+}

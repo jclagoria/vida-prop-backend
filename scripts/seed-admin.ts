@@ -1,11 +1,6 @@
 import 'dotenv/config'
 
-import { PrismaPg } from '@prisma/adapter-pg'
-import { hash } from 'bcrypt'
-import pg from 'pg'
-import { PrismaClient } from '../prisma/generated/client.ts'
-
-async function seedAdmin() {
+export function validateEnvVars() {
   const email = process.env.INITIAL_ADMIN_EMAIL
   const password = process.env.INITIAL_ADMIN_PASSWORD
   const name = process.env.INITIAL_ADMIN_NAME
@@ -16,6 +11,10 @@ async function seedAdmin() {
     )
   }
 
+  return { email, password, name }
+}
+
+export async function validatePasswordPolicy(password: string): Promise<void> {
   if (password.length < 8) {
     throw new Error('Password must be at least 8 characters')
   }
@@ -25,6 +24,20 @@ async function seedAdmin() {
   if (!/[0-9]/.test(password)) {
     throw new Error('Password must contain at least one number')
   }
+}
+
+export async function seedAdmin() {
+  const { email, password, name } = validateEnvVars()
+  await validatePasswordPolicy(password)
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismaPg } = require('@prisma/adapter-pg')
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { hash } = require('bcrypt')
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const pg = require('pg')
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismaClient } = require('@prisma/client')
 
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
   const adapter = new PrismaPg(pool)
@@ -58,9 +71,11 @@ async function seedAdmin() {
   }
 }
 
-seedAdmin()
-  .then(() => process.exit(0))
-  .catch((err) => {
-    console.error(err)
-    process.exit(1)
-  })
+if (require.main === module) {
+  seedAdmin()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error(err)
+      process.exit(1)
+    })
+}

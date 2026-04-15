@@ -12,3 +12,5 @@
 /.env
 /node_modules/
 /skills-lock.json
+/prisma/generated/
+/prisma/migrations/

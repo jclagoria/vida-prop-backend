@@ -21,15 +21,45 @@ enum UserRole {
 }
 
 model Users {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  role         UserRole
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String         @id @default(cuid())
+  email              String         @unique
+  passwordHash       String
+  role               UserRole
+  isActive           Boolean        @default(true)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  // Relations
+  invitationsCreated Invitation[]   @relation("CreatedBy")
+  notifications      Notification[]
 
   @@index([role])
   @@index([isActive])
   @@map("User")
+}
+
+model Notification {
+  id      String  @id @default(cuid())
+  Users   Users?  @relation(fields: [usersId], references: [id])
+  usersId String?
+}
+
+model Invitation {
+  id          String           @id @default(cuid())
+  email       String
+  role        UserRole
+  token       String           @unique
+  status      InvitationStatus @default(PENDING)
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+  createdById String
+  createdBy   Users            @relation("CreatedBy", fields: [createdById], references: [id])
+  apartmentId String?
+  buildingId  String?
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
 }
