@@ -41,7 +41,7 @@ model User {
   tenantProfile   Tenant?
 
   // System relations
-  invitationsCreated Invitation[] @relation("CreatedBy")
+  invitationsCreated Invitation[]   @relation("CreatedBy")
   notifications      Notification[]
   auditLogs          AuditLog[]
 
@@ -59,10 +59,10 @@ model Invitation {
   createdAt   DateTime         @default(now())
   createdById String
   createdBy   User             @relation("CreatedBy", fields: [createdById], references: [id])
-  apartmentId String?
   apartment   Apartment?       @relation(fields: [apartmentId], references: [id])
-  buildingId  String?
+  apartmentId String?
   building    Building?        @relation(fields: [buildingId], references: [id])
+  buildingId  String?
 
   @@index([email, status])
   @@index([token])
@@ -70,19 +70,23 @@ model Invitation {
 }
 
 model Apartment {
-  id         String   @id @default(uuid())
+  id         String       @id @default(uuid())
   number     String
   buildingId String?
-  building   Building? @relation(fields: [buildingId], references: [id])
+  building   Building?    @relation(fields: [buildingId], references: [id])
+  owner      User?        @relation("ApartmentOwner", fields: [ownerId], references: [id])
   ownerId    String?
-  owner      User?     @relation("ApartmentOwner", fields: [ownerId], references: [id])
+  Invitation Invitation[]
+  Tenant     Tenant[]
 }
 
 model Building {
-  id        String      @id @default(uuid())
-  name      String
-  address   String
+  id         String       @id @default(uuid())
+  name       String
+  address    String
   apartments Apartment[]
+  Invitation Invitation[]
+
   @@index([name])
 }
 
@@ -91,25 +95,29 @@ model Notification {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   message   String
-  read     Boolean  @default(false)
+  read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 
 model AuditLog {
   id        String   @id @default(uuid())
   userId    String
-  user      User    @relation(fields: [userId], references: [id])
-  action   String
-  details  String?
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  details   String?
   createdAt DateTime @default(now())
+
   @@index([userId])
   @@index([action])
 }
 
 model Tenant {
-  id        String   @id @default(uuid())
-  userId    String
+  id          String     @id @default(uuid())
+  userId      String     @unique
+  user        User       @relation(fields: [userId], references: [id])
   apartmentId String?
-  user      User      @relation(fields: [userId], references: [id])
-  apartment Apartment? @relation(fields: [apartmentId], references: [id])
+  apartment   Apartment? @relation(fields: [apartmentId], references: [id])
+
+  @@index([userId])
+  @@index([apartmentId])
 }
