@@ -1,6 +1,6 @@
-import { Invitation } from '../../domain/entities/invitation.entity'
-import type { InvitationStatus } from '../../domain/enums/invitation-status.enum'
-import type { UserRole } from '../../domain/enums/user-role.enum'
+import { Invitation } from '@/modules/user-management/domain/entities/invitation.entity'
+import type { InvitationStatus } from '@/modules/user-management/domain/enums/invitation-status.enum'
+import type { UserRole } from '@/modules/user-management/domain/enums/user-role.enum'
 
 interface PrismaInvitation {
   id: string
