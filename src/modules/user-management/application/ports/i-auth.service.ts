@@ -3,7 +3,7 @@ import type { User } from '../../domain/entities/user.entity'
 import type { Email } from '../../domain/value-objects/email.value-object'
 import type { Password } from '../../domain/value-objects/password.value-object'
 
-export const AUTH_SERVICE_PORT = "AUTH_SERVICE_PORT" as const
+export const AUTH_SERVICE_PORT = 'AUTH_SERVICE_PORT' as const
 
 export interface AuthTokens {
   accessToken: string
