@@ -15,9 +15,9 @@ import type { LoginUseCase } from '@/modules/user-management/application/use-cas
 import type { LogoutUseCase } from '@/modules/user-management/application/use-cases/auth/logout.usecase'
 import type { RefreshTokenUseCase } from '@/modules/user-management/application/use-cases/auth/refresh-token.usecase'
 import { JwtAuthGuard } from '@/modules/user-management/infrastructure/auth/jwt-auth.guard'
-import type { AuthLoginDto } from '../dto/auth-login.dto'
-import type { AuthRefreshDto } from '../dto/auth-refresh.dto'
-import { AuthResponseDto } from '../dto/auth-response.dto'
+import type { AuthLoginDto } from '@/modules/user-management/presentation/dto/auth-login.dto'
+import type { AuthRefreshDto } from '@/modules/user-management/presentation/dto/auth-refresh.dto'
+import { AuthResponseDto } from '@/modules/user-management/presentation/dto/auth-response.dto'
 
 @ApiTags('auth')
 @Controller('auth')

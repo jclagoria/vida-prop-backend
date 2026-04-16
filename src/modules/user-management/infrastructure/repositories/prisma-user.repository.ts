@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { defer, EMPTY, from, type Observable } from 'rxjs'
 import { map, shareReplay, switchMap } from 'rxjs/operators'
-import type { User } from '../../domain/entities/user.entity'
-import type { IUserRepository } from '../../domain/interfaces/i-user.repository'
-import type { Email } from '../../domain/value-objects/email.value-object'
-import type { UserId } from '../../domain/value-objects/user-id.value-object'
+import type { User } from '@/modules/user-management/domain/entities/user.entity'
+import type { IUserRepository } from '@/modules/user-management/domain/interfaces/i-user.repository'
+import type { Email } from '@/modules/user-management/domain/value-objects/email.value-object'
+import type { UserId } from '@/modules/user-management/domain/value-objects/user-id.value-object'
 import { UserMapper } from './mappers/user.mapper'
 
 @Injectable()
