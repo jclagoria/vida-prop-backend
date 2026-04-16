@@ -2,16 +2,26 @@ import { Module } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { AUTH_SERVICE_PORT } from '@/modules/user-management/application/ports/i-auth.service'
+import { INVITATION_SERVICE_PORT } from '@/modules/user-management/application/ports/i-invitation.service'
 import { LoginUseCase } from '@/modules/user-management/application/use-cases/auth/login.usecase'
 import { LogoutUseCase } from '@/modules/user-management/application/use-cases/auth/logout.usecase'
 import { RefreshTokenUseCase } from '@/modules/user-management/application/use-cases/auth/refresh-token.usecase'
+import { AcceptInvitationUseCase } from '@/modules/user-management/application/use-cases/invitation/accept-invitation.usecase'
+import { CancelInvitationUseCase } from '@/modules/user-management/application/use-cases/invitation/cancel-invitation.usecase'
+import { CreateInvitationUseCase } from '@/modules/user-management/application/use-cases/invitation/create-invitation.usecase'
+import { GetAllInvitationsUseCase } from '@/modules/user-management/application/use-cases/invitation/get-all-invitations.usecase'
+import { GetInvitationByIdUseCase } from '@/modules/user-management/application/use-cases/invitation/get-invitation-by-id.usecase'
+import { ResendInvitationUseCase } from '@/modules/user-management/application/use-cases/invitation/resend-invitation.usecase'
 import { BcryptAdapter } from '@/modules/user-management/infrastructure/adapters/bcrypt.adapter'
 import { JwtAdapter } from '@/modules/user-management/infrastructure/adapters/jwt.adapter'
 import { JwtStrategy } from '@/modules/user-management/infrastructure/auth/jwt.strategy'
 import { JwtAuthGuard } from '@/modules/user-management/infrastructure/auth/jwt-auth.guard'
 import { RolesGuard } from '@/modules/user-management/infrastructure/auth/roles.guard'
+import { InvitationExpiryJob } from '@/modules/user-management/infrastructure/jobs/invitation-expiry.job'
+import { PrismaInvitationRepository } from '@/modules/user-management/infrastructure/repositories/prisma-invitation.repository'
 import { PrismaUserRepository } from '@/modules/user-management/infrastructure/repositories/prisma-user.repository'
 import { AuthService } from '@/modules/user-management/infrastructure/services/auth.service'
+import { EmailService } from '@/modules/user-management/infrastructure/services/email.service'
 import { AuthController } from './controllers/auth.controller'
 import { InvitationController } from './controllers/invitation.controller'
 import { UserController } from './controllers/user.controller'
@@ -29,7 +39,15 @@ import { UserController } from './controllers/user.controller'
     LoginUseCase,
     RefreshTokenUseCase,
     LogoutUseCase,
+    CreateInvitationUseCase,
+    AcceptInvitationUseCase,
+    CancelInvitationUseCase,
+    ResendInvitationUseCase,
+    GetAllInvitationsUseCase,
+    GetInvitationByIdUseCase,
     AuthService,
+    EmailService,
+    InvitationExpiryJob,
     JwtStrategy,
     JwtAuthGuard,
     RolesGuard,
@@ -45,10 +63,19 @@ import { UserController } from './controllers/user.controller'
       inject: ['PrismaService'],
     },
     {
+      provide: 'PrismaInvitationRepository',
+      useFactory: (prisma: any) => new PrismaInvitationRepository(prisma),
+      inject: ['PrismaService'],
+    },
+    {
       provide: AUTH_SERVICE_PORT,
       useExisting: AuthService,
     },
+    {
+      provide: INVITATION_SERVICE_PORT,
+      useExisting: AuthService,
+    },
   ],
-  exports: [AuthService],
+  exports: [AuthService, EmailService],
 })
 export class UserManagementModule {}

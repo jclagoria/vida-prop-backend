@@ -100,15 +100,19 @@ model Notification {
 }
 
 model AuditLog {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  action    String
-  details   String?
-  createdAt DateTime @default(now())
+  id         String           @id @default(uuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id])
+  type       NotificationType
+  title      String
+  message    String
+  readStatus Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  readAt     DateTime?
 
   @@index([userId])
-  @@index([action])
+  @@index([readStatus])
+  @@index([createdAt])
 }
 
 model Tenant {
@@ -120,4 +124,59 @@ model Tenant {
 
   @@index([userId])
   @@index([apartmentId])
+}
+
+model NoticeTemplate {
+  id           String       @id @default(uuid())
+  name         String       @unique
+  bodyTemplate String
+  type         TemplateType
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([type])
+}
+
+model CommunicationLog {
+  id           String              @id @default(uuid())
+  recipientId  String
+  method       CommunicationMethod
+  subject      String
+  body         String
+  sentAt       DateTime            @default(now())
+  status       CommunicationStatus
+  errorMessage String?
+
+  @@index([recipientId])
+  @@index([sentAt])
+  @@index([status])
+}
+
+enum NotificationType {
+  PAYMENT_REMINDER
+  PAYMENT_RECEIVED
+  PAYMENT_OVERDUE
+  MAINTENANCE_UPDATE
+  MAINTENANCE_COMPLETED
+  CONTRACT_EXPIRING
+  GENERAL
+}
+
+enum TemplateType {
+  PAYMENT_REMINDER
+  MAINTENANCE_UPDATE
+  GENERAL
+}
+
+enum CommunicationMethod {
+  EMAIL
+  IN_APP
+  PAPER_NOTICE
+}
+
+enum CommunicationStatus {
+  SENT
+  FAILED
+  PENDING
 }
