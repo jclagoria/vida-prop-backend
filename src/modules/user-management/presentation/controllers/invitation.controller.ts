@@ -16,6 +16,8 @@ import { catchError, map } from 'rxjs/operators'
 import type { AcceptInvitationUseCase } from '@/modules/user-management/application/use-cases/invitation/accept-invitation.usecase'
 import type { CancelInvitationUseCase } from '@/modules/user-management/application/use-cases/invitation/cancel-invitation.usecase'
 import type { CreateInvitationUseCase } from '@/modules/user-management/application/use-cases/invitation/create-invitation.usecase'
+import type { GetAllInvitationsUseCase } from '@/modules/user-management/application/use-cases/invitation/get-all-invitations.usecase'
+import type { GetInvitationByIdUseCase } from '@/modules/user-management/application/use-cases/invitation/get-invitation-by-id.usecase'
 import type { ResendInvitationUseCase } from '@/modules/user-management/application/use-cases/invitation/resend-invitation.usecase'
 import type { User } from '@/modules/user-management/domain/entities/user.entity'
 import { UserRole } from '@/modules/user-management/domain/enums/user-role.enum'
@@ -50,7 +52,9 @@ export class InvitationController {
     private readonly createInvitationUseCase: CreateInvitationUseCase,
     private readonly acceptInvitationUseCase: AcceptInvitationUseCase,
     private readonly cancelInvitationUseCase: CancelInvitationUseCase,
-    private readonly resendInvitationUseCase: ResendInvitationUseCase
+    private readonly resendInvitationUseCase: ResendInvitationUseCase,
+    private readonly getAllInvitationsUseCase: GetAllInvitationsUseCase,
+    private readonly getInvitationByIdUseCase: GetInvitationByIdUseCase
   ) {}
 
   @Get()
@@ -60,12 +64,20 @@ export class InvitationController {
   async getAll(
     @Query() query: PaginationQueryDto
   ): Promise<PaginatedResponse<InvitationResponseDto>> {
+    const result = await firstValueFrom(
+      this.getAllInvitationsUseCase.execute({
+        page: query.page || 1,
+        limit: query.limit || 20,
+        status: query.status,
+      })
+    )
+
     return {
-      data: [],
-      total: 0,
-      page: query.page || 1,
-      limit: query.limit || 20,
-      totalPages: 0,
+      data: result.data.map(mapInvitationToResponse),
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
     }
   }
 
@@ -90,14 +102,12 @@ export class InvitationController {
   @ApiOperation({ summary: 'Get invitation by ID' })
   @ApiResponse({ status: 200, description: 'Invitation found', type: InvitationResponseDto })
   async getById(@Param('id') id: string): Promise<InvitationResponseDto> {
-    return {
-      id,
-      email: '',
-      role: UserRole.TENANT,
-      status: 'PENDING',
-      expiresAt: new Date(),
-      createdAt: new Date(),
-    }
+    const invitation = await firstValueFrom(
+      this.getInvitationByIdUseCase
+        .execute(id)
+        .pipe(catchError((error) => throwError(() => new Error(error.message))))
+    )
+    return mapInvitationToResponse(invitation)
   }
 
   @Delete(':id')
