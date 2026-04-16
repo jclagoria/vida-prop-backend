@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { defer, type Observable } from 'rxjs'
 import { catchError, map, shareReplay } from 'rxjs/operators'
 import { Invitation } from '@/modules/user-management/domain/entities/invitation.entity.js'
@@ -13,10 +13,7 @@ import type { InvitationModel, PrismaClient } from '@/types/prisma.js'
 
 @Injectable()
 export class PrismaInvitationRepository implements IInvitationRepository {
-  constructor(
-    @Inject('PrismaClient')
-    private readonly prisma: PrismaClient,
-  ) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   findById(id: string): Observable<Invitation | null> {
     return defer(() =>
