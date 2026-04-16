@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { defer, from, map, type Observable, shareReplay } from 'rxjs'
-import type { Invitation } from '../../domain/entities/invitation.entity'
-import type { IInvitationRepository } from '../../domain/interfaces/i-invitation.repository'
-import { InvitationMapper } from './mappers/invitation.mapper'
+import type { Invitation } from '@/modules/user-management/domain/entities/invitation.entity'
+import type { IInvitationRepository } from '@/modules/user-management/domain/interfaces/i-invitation.repository'
+import { InvitationMapper } from '@/modules/user-management/infrastructure/repositories/mappers/invitation.mapper'
 
 @Injectable()
 export class PrismaInvitationRepository implements IInvitationRepository {
