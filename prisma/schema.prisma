@@ -20,6 +20,13 @@ enum UserRole {
   TENANT
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
+}
+
 model User {
   id           String   @id @default(uuid())
   email        String   @unique
@@ -28,6 +35,81 @@ model User {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  // Role-specific relations
+  ownedApartments Apartment[] @relation("ApartmentOwner")
+  tenantProfile   Tenant?
+
+  // System relations
+  invitationsCreated Invitation[] @relation("CreatedBy")
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+
   @@index([role])
   @@index([isActive])
+}
+
+model Invitation {
+  id          String           @id @default(uuid())
+  email       String
+  role        UserRole
+  token       String           @unique
+  status      InvitationStatus @default(PENDING)
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+  createdById String
+  createdBy   User             @relation("CreatedBy", fields: [createdById], references: [id])
+  apartmentId String?
+  apartment   Apartment?       @relation(fields: [apartmentId], references: [id])
+  buildingId  String?
+  building    Building?        @relation(fields: [buildingId], references: [id])
+
+  @@index([email, status])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model Apartment {
+  id         String   @id @default(uuid())
+  number     String
+  buildingId String?
+  building   Building? @relation(fields: [buildingId], references: [id])
+  ownerId    String?
+  owner      User?     @relation("ApartmentOwner", fields: [ownerId], references: [id])
+}
+
+model Building {
+  id        String      @id @default(uuid())
+  name      String
+  address   String
+  apartments Apartment[]
+  @@index([name])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  read     Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  action   String
+  details  String?
+  createdAt DateTime @default(now())
+  @@index([userId])
+  @@index([action])
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  userId    String
+  apartmentId String?
+  user      User      @relation(fields: [userId], references: [id])
+  apartment Apartment? @relation(fields: [apartmentId], references: [id])
 }
