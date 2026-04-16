@@ -1,5 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing'
-import { of, throwError } from 'rxjs'
+import { of } from 'rxjs'
 import { User } from '@/modules/user-management/domain/entities/user.entity.js'
 import { UserRole } from '@/modules/user-management/domain/enums/user-role.enum.js'
 import { Email } from '@/modules/user-management/domain/value-objects/email.value-object.js'
@@ -20,19 +20,9 @@ const mockPrismaClient = {
 describe('PrismaUserRepository', () => {
   let repository: PrismaUserRepository
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks()
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        PrismaUserRepository,
-        {
-          provide: 'PrismaClient',
-          useValue: mockPrismaClient,
-        },
-      ],
-    }).compile()
-
-    repository = module.get<PrismaUserRepository>(PrismaUserRepository)
+    repository = new PrismaUserRepository(mockPrismaClient as any)
   })
 
   describe('findById', () => {

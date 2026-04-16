@@ -12,12 +12,9 @@ import type { PrismaClient } from '@/types/prisma.js'
 
 @Injectable()
 export class PrismaUserRepository implements IUserRepository {
-  private readonly cache = new Map<string, User>();
+  private readonly cache = new Map<string, User>()
 
-  constructor(
-    @Inject('PrismaClient')
-    private readonly prisma: PrismaClient,
-  ) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   findById(id: UserId): Observable<User | null> {
     return defer(() =>

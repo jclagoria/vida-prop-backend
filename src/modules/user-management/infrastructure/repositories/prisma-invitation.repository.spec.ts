@@ -21,19 +21,9 @@ const mockPrismaClient = {
 describe('PrismaInvitationRepository', () => {
   let repository: PrismaInvitationRepository
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks()
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        PrismaInvitationRepository,
-        {
-          provide: 'PrismaClient',
-          useValue: mockPrismaClient,
-        },
-      ],
-    }).compile()
-
-    repository = module.get<PrismaInvitationRepository>(PrismaInvitationRepository)
+    repository = new PrismaInvitationRepository(mockPrismaClient as any)
   })
 
   describe('findById', () => {
