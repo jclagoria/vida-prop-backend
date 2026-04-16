@@ -6,13 +6,13 @@ import {
   AUTH_SERVICE_PORT,
   type AuthTokens,
   type IAuthServicePort,
-} from '../../application/ports/i-auth.service'
-import type { User } from '../../domain/entities/user.entity'
-import type { Email } from '../../domain/value-objects/email.value-object'
-import type { Password } from '../../domain/value-objects/password.value-object'
-import type { BcryptAdapter } from '../adapters/bcrypt.adapter'
-import type { JwtAdapter } from '../adapters/jwt.adapter'
-import type { PrismaUserRepository } from '../repositories/prisma-user.repository'
+} from '@/modules/user-management/application/ports/i-auth.service'
+import type { User } from '@/modules/user-management/domain/entities/user.entity'
+import type { Email } from '@/modules/user-management/domain/value-objects/email.value-object'
+import type { Password } from '@/modules/user-management/domain/value-objects/password.value-object'
+import type { BcryptAdapter } from '@/modules/user-management/infrastructure/adapters/bcrypt.adapter'
+import type { JwtAdapter } from '@/modules/user-management/infrastructure/adapters/jwt.adapter'
+import type { PrismaUserRepository } from '@/modules/user-management/infrastructure/repositories/prisma-user.repository'
 
 @Injectable()
 export class AuthService implements IAuthServicePort {

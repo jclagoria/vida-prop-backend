@@ -12,7 +12,9 @@ import { JwtAuthGuard } from '@/modules/user-management/infrastructure/auth/jwt-
 import { RolesGuard } from '@/modules/user-management/infrastructure/auth/roles.guard'
 import { PrismaUserRepository } from '@/modules/user-management/infrastructure/repositories/prisma-user.repository'
 import { AuthService } from '@/modules/user-management/infrastructure/services/auth.service'
-import { AuthController } from '@/modules/user-management/presentation/controllers/auth.controller'
+import { AuthController } from './controllers/auth.controller'
+import { InvitationController } from './controllers/invitation.controller'
+import { UserController } from './controllers/user.controller'
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { AuthController } from '@/modules/user-management/presentation/controlle
       signOptions: { expiresIn: '15m' },
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, UserController, InvitationController],
   providers: [
     LoginUseCase,
     RefreshTokenUseCase,
