@@ -22,7 +22,7 @@ export class UserDomainService {
     return new User({
       id: new UserId(crypto.randomUUID()),
       email: input.email,
-      passwordHash: '',
+      passwordHash: '', // To be filled by infrastructure
       role: input.role,
       isActive: true,
       createdAt: now,

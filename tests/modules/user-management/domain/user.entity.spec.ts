@@ -37,6 +37,14 @@ describe('User Entity', () => {
     expect(makeUser({ role: UserRole.TENANT }).isAdmin()).toBe(false)
   })
 
+  it('isActiveUser returns true when active', () => {
+    expect(makeUser({ isActive: true }).isActiveUser()).toBe(true)
+  })
+
+  it('isActiveUser returns false when inactive', () => {
+    expect(makeUser({ isActive: false }).isActiveUser()).toBe(false)
+  })
+
   it('deactivate creates new inactive user', () => {
     const user = makeUser({ isActive: true })
     const deactivated = user.deactivate()
@@ -44,9 +52,22 @@ describe('User Entity', () => {
     expect(user.isActive).toBe(true)
   })
 
+  it('activate creates new active user', () => {
+    const user = makeUser({ isActive: false })
+    const activated = user.activate()
+    expect(activated.isActive).toBe(true)
+    expect(user.isActive).toBe(false)
+  })
+
   it('equals returns true for same id', () => {
     const user1 = makeUser({ id: 'same' })
     const user2 = makeUser({ id: 'same' })
     expect(user1.equals(user2)).toBe(true)
+  })
+
+  it('equals returns false for different id', () => {
+    const user1 = makeUser({ id: 'uuid1' })
+    const user2 = makeUser({ id: 'uuid2' })
+    expect(user1.equals(user2)).toBe(false)
   })
 })
