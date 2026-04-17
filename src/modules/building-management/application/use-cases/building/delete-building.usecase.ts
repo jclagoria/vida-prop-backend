@@ -1,0 +1,44 @@
+import { Injectable, Logger } from '@nestjs/common'
+import { type Observable, throwError } from 'rxjs'
+import { catchError, switchMap } from 'rxjs/operators'
+import type { Building } from '@/modules/building-management/domain/entities/building.entity'
+import type { BuildingDomainService } from '@/modules/building-management/domain/services/building.domain-service'
+import type { IBuildingServicePort } from '../../ports/i-building.service'
+
+@Injectable()
+export class DeleteBuildingUseCase {
+  private readonly logger = new Logger(DeleteBuildingUseCase.name)
+
+  constructor(
+    private readonly buildingService: IBuildingServicePort,
+    private readonly domainService: BuildingDomainService
+  ) {}
+
+  execute(id: string): Observable<void> {
+    return this.buildingService.findById(id).pipe(
+      switchMap((building) => {
+        if (!building) {
+          return throwError(() => new Error('Building not found'))
+        }
+
+        if (!this.domainService.canDeleteBuilding(building)) {
+          return throwError(() => new Error('Building cannot be deleted due to active contracts'))
+        }
+
+        return this.buildingService.delete(id)
+      }),
+      catchError((error) => {
+        this.logger.error(
+          'DeleteBuildingUseCase.execute failed',
+          error instanceof Error ? error.stack : undefined,
+          {
+            useCase: 'DeleteBuildingUseCase',
+            operation: 'execute',
+            error: error instanceof Error ? error.message : 'Unknown error',
+          }
+        )
+        return throwError(() => error)
+      })
+    )
+  }
+}
