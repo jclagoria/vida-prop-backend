@@ -1,4 +1,6 @@
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { Invitation } from '../entities/invitation.entity'
+import type { User } from '../entities/user.entity'
 import { InvitationStatus } from '../enums/invitation-status.enum'
 import { UserRole } from '../enums/user-role.enum'
 
@@ -12,8 +14,20 @@ export interface CreateInvitationInput {
 
 const DEFAULT_EXPIRY_DAYS = 7
 
+export const DOMAIN_LOGGER = 'DomainLogger'
+
+@Injectable()
 export class InvitationDomainService {
+  private readonly logger = new Logger(InvitationDomainService.name)
+
   createInvitation(input: CreateInvitationInput): Invitation {
+    this.logger.debug('Creating invitation', {
+      service: 'InvitationDomainService',
+      operation: 'createInvitation',
+      email: input.email,
+      role: input.role,
+    })
+
     const now = new Date()
     const expiresAt = new Date(now)
     expiresAt.setDate(expiresAt.getDate() + DEFAULT_EXPIRY_DAYS)
@@ -34,6 +48,32 @@ export class InvitationDomainService {
 
   private generateToken(): string {
     return crypto.randomUUID()
+  }
+
+  canInviteUser(inviter: User, roleToInvite: UserRole): boolean {
+    this.logger.debug('Checking invitation permission', {
+      service: 'InvitationDomainService',
+      operation: 'canInviteUser',
+      inviterRole: inviter.role,
+      requestedRole: roleToInvite,
+    })
+
+    if (inviter.isAdmin()) {
+      return true
+    }
+
+    if (inviter.role === UserRole.OWNER && roleToInvite === UserRole.TENANT) {
+      return true
+    }
+
+    this.logger.warn('Invitation denied', {
+      service: 'InvitationDomainService',
+      operation: 'canInviteUser',
+      inviterRole: inviter.role,
+      requestedRole: roleToInvite,
+    })
+
+    return false
   }
 
   canAcceptInvitation(invitation: Invitation): boolean {
@@ -63,6 +103,14 @@ export class InvitationDomainService {
 
     if (!Object.values(UserRole).includes(input.role)) {
       errors.push('Invalid role')
+    }
+
+    if (errors.length > 0) {
+      this.logger.warn('Invitation validation failed', {
+        service: 'InvitationDomainService',
+        operation: 'validateInvitationCreation',
+        errors,
+      })
     }
 
     return {

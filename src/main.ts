@@ -1,4 +1,7 @@
 import 'reflect-metadata'
+import { HttpExceptionFilter } from '@common/filters/http-exception.filter'
+import { CorrelationIdInterceptor } from '@common/interceptors/correlation-id.interceptor'
+import { LoggingInterceptor } from '@common/interceptors/logging.interceptor'
 import { Logger, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
@@ -7,9 +10,6 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
 import { of } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { AppModule } from './app.module'
-import { HttpExceptionFilter } from '@common/filters/http-exception.filter'
-import { CorrelationIdInterceptor } from '@common/interceptors/correlation-id.interceptor'
-import { LoggingInterceptor } from '@common/interceptors/logging.interceptor'
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger('Bootstrap')

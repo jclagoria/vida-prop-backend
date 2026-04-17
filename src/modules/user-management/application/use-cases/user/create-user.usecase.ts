@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { Observable, throwError } from 'rxjs'
 import { catchError, switchMap } from 'rxjs/operators'
 import type { User } from '@/modules/user-management/domain/entities/user.entity'
@@ -10,6 +10,8 @@ import type { IUserServicePort } from '../../ports/i-user.service'
 
 @Injectable()
 export class CreateUserUseCase {
+  private readonly logger = new Logger(CreateUserUseCase.name)
+
   constructor(
     private readonly userService: IUserServicePort,
     private readonly domainService: UserDomainService
@@ -36,6 +38,20 @@ export class CreateUserUseCase {
       } catch (error) {
         subscriber.error(error)
       }
-    }).pipe(switchMap(() => this.userService.create(dto)))
+    }).pipe(
+      switchMap(() => this.userService.create(dto)),
+      catchError((error) => {
+        this.logger.error(
+          'CreateUserUseCase.execute failed',
+          error instanceof Error ? error.stack : undefined,
+          {
+            useCase: 'CreateUserUseCase',
+            operation: 'execute',
+            error: error instanceof Error ? error.message : 'Unknown error',
+          }
+        )
+        return throwError(() => error)
+      })
+    )
   }
 }
