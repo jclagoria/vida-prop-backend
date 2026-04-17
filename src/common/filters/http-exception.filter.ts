@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common'
 import type { Request, Response } from 'express'
 import { type Observable, throwError } from 'rxjs'
+import { CORRELATION_ID_HEADER } from '../interceptors/correlation-id.interceptor'
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -18,6 +19,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>()
     const request = ctx.getRequest<Request>()
 
+    const correlationId = request.headers[CORRELATION_ID_HEADER]
     const status =
       exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR
 
@@ -27,14 +29,21 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const errorResponse = {
       statusCode: status,
       timestamp: new Date().toISOString(),
+      correlationId,
       path: request.url,
       method: request.method,
       message: typeof message === 'string' ? message : (message as Record<string, unknown>).message,
     }
 
     this.logger.error(
-      `${request.method} ${request.url} ${status}`,
-      exception instanceof Error ? exception.stack : String(exception)
+      JSON.stringify({
+        correlationId,
+        method: request.method,
+        url: request.url,
+        status,
+        error: errorResponse,
+        stack: exception instanceof Error ? exception.stack : undefined,
+      })
     )
 
     response.status(status).json(errorResponse)
