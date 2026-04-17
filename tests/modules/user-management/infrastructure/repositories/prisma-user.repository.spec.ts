@@ -9,7 +9,7 @@ describe('PrismaUserRepository', () => {
   let repository: PrismaUserRepository
   let mockPrisma: any
 
-  const makeUser = () => {
+  const _makeUser = () => {
     return new User({
       id: new UserId('user-id'),
       email: new Email('user@habitat.com'),
