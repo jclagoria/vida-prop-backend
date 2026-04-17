@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { EMPTY, from, type Observable } from 'rxjs'
-import { catchError, switchMap } from 'rxjs/operators'
+import { catchError, switchMap, tap } from 'rxjs/operators'
 import {
   AUTH_SERVICE_PORT,
   type AuthTokens,
@@ -11,6 +11,8 @@ import { Password } from '@/modules/user-management/domain/value-objects/passwor
 
 @Injectable()
 export class LoginUseCase {
+  private readonly logger = new Logger(LoginUseCase.name)
+
   constructor(
     @Inject(AUTH_SERVICE_PORT)
     private readonly authService: IAuthServicePort
@@ -23,11 +25,29 @@ export class LoginUseCase {
       ),
       switchMap((user) => {
         if (!user) {
+          this.logger.warn('Login failed - invalid credentials', {
+            useCase: 'LoginUseCase',
+            operation: 'execute',
+            email,
+          })
           throw new Error('Invalid credentials')
         }
         return this.authService.generateTokens(user)
       }),
+      tap(() => {
+        this.logger.log('User logged in', {
+          useCase: 'LoginUseCase',
+          operation: 'execute',
+          email,
+        })
+      }),
       catchError((error) => {
+        this.logger.error('Login failed', error instanceof Error ? error.stack : undefined, {
+          useCase: 'LoginUseCase',
+          operation: 'execute',
+          email,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
         throw new Error(`Login failed: ${error.message}`)
       })
     )
