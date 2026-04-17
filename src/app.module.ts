@@ -1,6 +1,8 @@
 import { HealthModule } from '@health/health.module'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
+import { WinstonModule } from 'nest-winston'
+import { winstonConfig } from '@common/logging/winston.config'
 import { UserManagementModule } from './modules/user-management/presentation/user-management.module'
 
 @Module({
@@ -9,6 +11,7 @@ import { UserManagementModule } from './modules/user-management/presentation/use
       isGlobal: true,
       envFilePath: '.env',
     }),
+    WinstonModule.forRoot(winstonConfig),
     HealthModule,
     UserManagementModule,
   ],
