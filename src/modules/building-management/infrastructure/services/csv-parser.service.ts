@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { defer, type Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { defer, type Observable, of } from 'rxjs'
 
 export interface ParsedApartment {
   floorId: string
@@ -29,9 +28,7 @@ export class CsvParserService {
       return apartments
     }
 
-    return defer(() => parse() as unknown as Promise<ParsedApartment[]>).pipe(
-      map((v) => v as ParsedApartment[])
-    )
+    return defer(() => of(parse()))
   }
 
   private parseLine(line: string): string[] {

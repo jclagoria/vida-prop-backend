@@ -1,4 +1,7 @@
-import { Building } from '@/modules/building-management/domain/entities/building.entity'
+import {
+  Building,
+  type BuildingProps,
+} from '@/modules/building-management/domain/entities/building.entity'
 import type { Country } from '@/modules/building-management/domain/enums/country.enum'
 import { Address } from '@/modules/building-management/domain/value-objects/address.value-object'
 import { BuildingId } from '@/modules/building-management/domain/value-objects/building-id.value-object'
@@ -17,11 +20,14 @@ interface PrismaBuilding {
 
 export class BuildingMapper {
   static toDomain(prisma: PrismaBuilding): Building {
-    const building = Building.create({
+    const { street, number } = BuildingMapper.parseAddress(prisma.address)
+
+    const props: BuildingProps = {
+      id: new BuildingId(prisma.id),
       name: prisma.name,
       address: Address.create({
-        street: prisma.address,
-        number: '',
+        street,
+        number,
         city: prisma.city,
         country: prisma.country,
       }),
@@ -29,9 +35,18 @@ export class BuildingMapper {
       city: prisma.city,
       country: prisma.country,
       notes: prisma.notes ?? undefined,
-    })
+      createdAt: prisma.createdAt,
+      updatedAt: prisma.updatedAt,
+    }
+    return new Building(props)
+  }
 
-    return Object.assign(building, { id: new BuildingId(prisma.id) }) as Building
+  private static parseAddress(address: string): { street: string; number: string } {
+    const match = address.match(/^(.+?)\s*(\d+)$/)
+    if (match) {
+      return { street: match[1].trim(), number: match[2] }
+    }
+    return { street: address, number: '' }
   }
 
   static toPrismaCreate(

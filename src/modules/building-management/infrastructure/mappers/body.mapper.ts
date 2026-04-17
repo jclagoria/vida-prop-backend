@@ -1,4 +1,4 @@
-import { Body } from '@/modules/building-management/domain/entities/body.entity'
+import { Body, type BodyProps } from '@/modules/building-management/domain/entities/body.entity'
 import { BodyId } from '@/modules/building-management/domain/value-objects/body-id.value-object'
 import { BuildingId } from '@/modules/building-management/domain/value-objects/building-id.value-object'
 
@@ -10,8 +10,12 @@ interface PrismaBody {
 
 export class BodyMapper {
   static toDomain(prisma: PrismaBody): Body {
-    const body = Body.create(new BuildingId(prisma.buildingId), prisma.name)
-    return Object.assign(body, { id: new BodyId(prisma.id) }) as Body
+    const props: BodyProps = {
+      id: new BodyId(prisma.id),
+      buildingId: new BuildingId(prisma.buildingId),
+      name: prisma.name,
+    }
+    return new Body(props)
   }
 
   static toPrismaCreate(body: Body): Omit<PrismaBody, 'id'> {

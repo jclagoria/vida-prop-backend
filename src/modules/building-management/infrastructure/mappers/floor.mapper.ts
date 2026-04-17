@@ -1,4 +1,4 @@
-import { Floor } from '@/modules/building-management/domain/entities/floor.entity'
+import { Floor, type FloorProps } from '@/modules/building-management/domain/entities/floor.entity'
 import { BodyId } from '@/modules/building-management/domain/value-objects/body-id.value-object'
 import { FloorId } from '@/modules/building-management/domain/value-objects/floor-id.value-object'
 
@@ -10,8 +10,12 @@ interface PrismaFloor {
 
 export class FloorMapper {
   static toDomain(prisma: PrismaFloor): Floor {
-    const floor = Floor.create(new BodyId(prisma.bodyId), prisma.floorNumber)
-    return Object.assign(floor, { id: new FloorId(prisma.id) }) as Floor
+    const props: FloorProps = {
+      id: new FloorId(prisma.id),
+      bodyId: new BodyId(prisma.bodyId),
+      floorNumber: prisma.floorNumber,
+    }
+    return new Floor(props)
   }
 
   static toPrismaCreate(floor: Floor): Omit<PrismaFloor, 'id'> {

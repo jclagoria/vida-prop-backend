@@ -1,4 +1,7 @@
-import { Apartment } from '@/modules/building-management/domain/entities/apartment.entity'
+import {
+  Apartment,
+  type ApartmentProps,
+} from '@/modules/building-management/domain/entities/apartment.entity'
 import type { ApartmentStatus } from '@/modules/building-management/domain/enums/apartment-status.enum'
 import { ApartmentId } from '@/modules/building-management/domain/value-objects/apartment-id.value-object'
 import { FloorId } from '@/modules/building-management/domain/value-objects/floor-id.value-object'
@@ -16,21 +19,24 @@ interface PrismaApartment {
 
 export class ApartmentMapper {
   static toDomain(prisma: PrismaApartment): Apartment {
-    const identifier = UniqueIdentifier.create(
-      prisma.uniqueIdentifier.split('-')[0] || '',
-      parseInt(prisma.uniqueIdentifier.split('-')[1]?.slice(0, 3) || '0', 10),
-      prisma.unitNumber,
-      prisma.uniqueIdentifier.includes('--') ? undefined : prisma.uniqueIdentifier.split('-')[1]
-    )
+    const parts = prisma.uniqueIdentifier.split('-')
+    const buildingCode = parts[0] || ''
+    const bodyName = parts.length > 2 && parts[1] !== '' ? parts[1] : undefined
+    const floorNumber = parseInt(parts[parts.length - 1]?.slice(0, 3) || '0', 10)
+    const unitNumber = parts[parts.length - 1]?.slice(3) || prisma.unitNumber
 
-    const apartment = Apartment.create(
-      new FloorId(prisma.floorId),
-      prisma.unitNumber,
-      identifier,
-      prisma.totalRooms,
-      Number(prisma.totalArea)
-    )
-    return Object.assign(apartment, { id: new ApartmentId(prisma.id) }) as Apartment
+    const identifier = UniqueIdentifier.create(buildingCode, floorNumber, unitNumber, bodyName)
+
+    const props: ApartmentProps = {
+      id: new ApartmentId(prisma.id),
+      floorId: new FloorId(prisma.floorId),
+      unitNumber: prisma.unitNumber,
+      uniqueIdentifier: identifier,
+      totalRooms: prisma.totalRooms,
+      totalArea: prisma.totalArea,
+      status: prisma.status,
+    }
+    return new Apartment(props)
   }
 
   static toPrismaCreate(apartment: Apartment): Omit<PrismaApartment, 'id'> {
@@ -39,7 +45,7 @@ export class ApartmentMapper {
       unitNumber: apartment.unitNumber,
       uniqueIdentifier: apartment.uniqueIdentifier.toString(),
       totalRooms: apartment.totalRooms,
-      totalArea: apartment.totalArea as unknown as number,
+      totalArea: apartment.totalArea,
       status: apartment.status,
     }
   }
@@ -50,7 +56,7 @@ export class ApartmentMapper {
       unitNumber: apartment.unitNumber,
       uniqueIdentifier: apartment.uniqueIdentifier.toString(),
       totalRooms: apartment.totalRooms,
-      totalArea: apartment.totalArea as unknown as number,
+      totalArea: apartment.totalArea,
       status: apartment.status,
     }
   }
