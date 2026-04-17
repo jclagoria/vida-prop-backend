@@ -20,7 +20,7 @@ function maskSensitiveData(data: unknown): unknown {
   const masked: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
     if (SENSITIVE_FIELDS.some((field) => key.toLowerCase().includes(field))) {
-      masked[key] = `${crypto.randomBytes(8).toString('hex').slice(0, 4)}****`
+      masked[key] = crypto.randomBytes(8).toString('hex').slice(0, 4) + '****'
     } else {
       masked[key] = maskSensitiveData(value)
     }
@@ -40,6 +40,18 @@ export class LoggingInterceptor implements NestInterceptor {
     const { method, url, headers, body, query, params } = request
     const correlationId = headers[CORRELATION_ID_HEADER]
     const now = Date.now()
+
+    this.logger.debug(
+      'Incoming request',
+      JSON.stringify({
+        correlationId,
+        method,
+        url,
+        query: maskSensitiveData(query),
+        params: maskSensitiveData(params),
+        body: maskSensitiveData(body),
+      })
+    )
 
     this.logger.debug(
       'Incoming request',
