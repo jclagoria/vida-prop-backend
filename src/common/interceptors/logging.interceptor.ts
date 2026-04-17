@@ -1,4 +1,4 @@
- import * as crypto from 'node:crypto'
+import * as crypto from 'node:crypto'
 import {
   type CallHandler,
   type ExecutionContext,
@@ -20,7 +20,7 @@ function maskSensitiveData(data: unknown): unknown {
   const masked: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
     if (SENSITIVE_FIELDS.some((field) => key.toLowerCase().includes(field))) {
-      masked[key] = crypto.randomBytes(8).toString('hex').slice(0, 4) + '****'
+      masked[key] = `${crypto.randomBytes(8).toString('hex').slice(0, 4)}****`
     } else {
       masked[key] = maskSensitiveData(value)
     }

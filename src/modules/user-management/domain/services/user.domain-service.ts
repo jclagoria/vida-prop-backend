@@ -1,3 +1,6 @@
+import { Inject, Injectable } from '@nestjs/common'
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston'
+import type * as winston from 'winston'
 import { User } from '../entities/user.entity'
 import { UserRole } from '../enums/user-role.enum'
 import { Email } from '../value-objects/email.value-object'
@@ -10,24 +13,66 @@ export interface CreateUserInput {
   role: UserRole
 }
 
-export class UserDomainService {
-  createUser(input: CreateUserInput): User {
-    const passwordVO = input.password
-    if (!passwordVO.meetsPolicy()) {
-      const errors = passwordVO.getPolicyErrors()
-      throw new Error(errors.join(', '))
-    }
+export const DOMAIN_LOGGER = 'DomainLogger'
 
-    const now = new Date()
-    return new User({
-      id: new UserId(crypto.randomUUID()),
-      email: input.email,
-      passwordHash: '', // To be filled by infrastructure
+@Injectable()
+export class UserDomainService {
+  constructor(
+    @Inject(DOMAIN_LOGGER)
+    private readonly logger: winston.Logger
+  ) {}
+
+  createUser(input: CreateUserInput): User {
+    this.logger.info('UserDomainService.createUser started', {
+      service: 'UserDomainService',
+      operation: 'createUser',
+      email: input.email.getValue(),
       role: input.role,
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
     })
+
+    try {
+      const passwordVO = input.password
+      if (!passwordVO.meetsPolicy()) {
+        const errors = passwordVO.getPolicyErrors()
+        this.logger.error('Password policy violation', errors.join(', '), {
+          service: 'UserDomainService',
+          operation: 'createUser',
+          email: input.email.getValue(),
+          errors,
+        })
+        throw new Error(errors.join(', '))
+      }
+
+      const now = new Date()
+      const user = new User({
+        id: new UserId(crypto.randomUUID()),
+        email: input.email,
+        passwordHash: '',
+        role: input.role,
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      })
+
+      this.logger.info('UserDomainService.createUser success', {
+        service: 'UserDomainService',
+        operation: 'createUser',
+        userId: user.id.toString(),
+      })
+
+      return user
+    } catch (error) {
+      this.logger.error(
+        'UserDomainService.createUser failed',
+        error instanceof Error ? error.stack : undefined,
+        {
+          service: 'UserDomainService',
+          operation: 'createUser',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        }
+      )
+      throw error
+    }
   }
 
   validateUserCreation(input: CreateUserInput): { valid: boolean; errors: string[] } {
@@ -42,6 +87,14 @@ export class UserDomainService {
     const passwordVO = input.password
     if (!passwordVO.meetsPolicy()) {
       errors.push(...passwordVO.getPolicyErrors())
+    }
+
+    if (errors.length > 0) {
+      this.logger.warn('User validation failed', {
+        service: 'UserDomainService',
+        operation: 'validateUserCreation',
+        errors,
+      })
     }
 
     return {
