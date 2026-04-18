@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
-import { defer, from, type Observable } from 'rxjs'
-import { map, shareReplay } from 'rxjs/operators'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
+import { defer, from, type Observable, throwError } from 'rxjs'
+import { catchError, map, shareReplay } from 'rxjs/operators'
 import type { Body } from '@/modules/building-management/domain/entities/body.entity'
 import type { IBodyRepository } from '@/modules/building-management/domain/interfaces/i-body.repository'
 import type { BodyId } from '@/modules/building-management/domain/value-objects/body-id.value-object'
@@ -35,8 +35,23 @@ export class PrismaBodyRepository implements IBodyRepository {
 
   save(body: Body): Observable<Body> {
     const data = BodyMapper.toPrismaCreate(body)
-    return defer(() => from(this.prisma.body.create({ data }))).pipe(
-      map((prismaBody: any) => BodyMapper.toDomain(prismaBody))
+    return defer(() =>
+      from(
+        this.prisma.$transaction(async (tx: any) => {
+          const created = await tx.body.create({ data })
+          return created
+        })
+      )
+    ).pipe(
+      map((prismaBody: any) => BodyMapper.toDomain(prismaBody)),
+      catchError((error) => {
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        console.error('[PrismaBodyRepository] Transaction failed', {
+          error: message,
+          bodyId: body.id.toString(),
+        })
+        return throwError(() => new InternalServerErrorException('Failed to save body'))
+      })
     )
   }
 

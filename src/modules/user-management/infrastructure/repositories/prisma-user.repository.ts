@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
-import { defer, EMPTY, from, type Observable } from 'rxjs'
-import { map, shareReplay, switchMap } from 'rxjs/operators'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
+import { defer, EMPTY, from, type Observable, throwError } from 'rxjs'
+import { catchError, map, shareReplay, switchMap } from 'rxjs/operators'
 import type { User } from '@/modules/user-management/domain/entities/user.entity'
 import type { IUserRepository } from '@/modules/user-management/domain/interfaces/i-user.repository'
 import type { Email } from '@/modules/user-management/domain/value-objects/email.value-object'
@@ -40,11 +40,24 @@ export class PrismaUserRepository implements IUserRepository {
   save(user: User): Observable<User> {
     return defer(() =>
       from(
-        this.prisma.user.create({
-          data: UserMapper.toPrismaCreate(user),
+        this.prisma.$transaction(async (tx: any) => {
+          const created = await tx.user.create({
+            data: UserMapper.toPrismaCreate(user),
+          })
+          return created
         })
       )
-    ).pipe(map((prismaUser: any) => UserMapper.toDomain(prismaUser)))
+    ).pipe(
+      map((prismaUser: any) => UserMapper.toDomain(prismaUser)),
+      catchError((error) => {
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        console.error('[PrismaUserRepository] Transaction failed', {
+          error: message,
+          userId: user.id.toString(),
+        })
+        return throwError(() => new InternalServerErrorException('Failed to save user'))
+      })
+    )
   }
 
   update(user: User): Observable<User> {

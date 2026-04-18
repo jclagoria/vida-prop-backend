@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common'
-import { defer, from, type Observable } from 'rxjs'
-import { map, shareReplay } from 'rxjs/operators'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
+import { defer, from, type Observable, throwError } from 'rxjs'
+import { catchError, map, shareReplay } from 'rxjs/operators'
 import type { Floor } from '@/modules/building-management/domain/entities/floor.entity'
 import type { IFloorRepository } from '@/modules/building-management/domain/interfaces/i-floor.repository'
 import type { BodyId } from '@/modules/building-management/domain/value-objects/body-id.value-object'
@@ -35,8 +35,23 @@ export class PrismaFloorRepository implements IFloorRepository {
 
   save(floor: Floor): Observable<Floor> {
     const data = FloorMapper.toPrismaCreate(floor)
-    return defer(() => from(this.prisma.floor.create({ data }))).pipe(
-      map((prismaFloor: any) => FloorMapper.toDomain(prismaFloor))
+    return defer(() =>
+      from(
+        this.prisma.$transaction(async (tx: any) => {
+          const created = await tx.floor.create({ data })
+          return created
+        })
+      )
+    ).pipe(
+      map((prismaFloor: any) => FloorMapper.toDomain(prismaFloor)),
+      catchError((error) => {
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        console.error('[PrismaFloorRepository] Transaction failed', {
+          error: message,
+          floorId: floor.id.toString(),
+        })
+        return throwError(() => new InternalServerErrorException('Failed to save floor'))
+      })
     )
   }
 
