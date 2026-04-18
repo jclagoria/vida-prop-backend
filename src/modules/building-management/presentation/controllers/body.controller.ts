@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Post as NestPost,
   Param,
+  UseGuards,
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { firstValueFrom, throwError } from 'rxjs'
@@ -13,6 +14,7 @@ import { catchError, map } from 'rxjs/operators'
 import type { CreateBodyDto } from '@/modules/building-management/application/dto/create-body.dto'
 import type { CreateBodyUseCase } from '@/modules/building-management/application/use-cases/body/create-body.usecase'
 import type { DeleteBodyUseCase } from '@/modules/building-management/application/use-cases/body/delete-body.usecase'
+import { JwtAuthGuard } from '@/modules/user-management/infrastructure/auth/jwt-auth.guard'
 
 const mapBodyToResponse = (body: {
   id: { toString(): string }
@@ -26,6 +28,7 @@ const mapBodyToResponse = (body: {
 
 @ApiTags('Bodies')
 @Controller('api/v1/buildings/:buildingId/bodies')
+@UseGuards(JwtAuthGuard)
 export class BodyController {
   constructor(
     private readonly createBodyUseCase: CreateBodyUseCase,
