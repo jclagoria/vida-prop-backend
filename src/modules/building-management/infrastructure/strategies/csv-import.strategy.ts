@@ -41,7 +41,7 @@ interface ApartmentInput {
 @Injectable()
 export class CsvImportStrategy {
   constructor(
-    private uniqueIdentifierService: UniqueIdentifierService,
+    _uniqueIdentifierService: UniqueIdentifierService,
     private csvParserService: CsvParserService,
     private apartmentRepository: IApartmentRepository
   ) {}

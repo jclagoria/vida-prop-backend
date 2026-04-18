@@ -9,10 +9,10 @@ export interface ApartmentFilter {
   status?: ApartmentStatus
 }
 
-export interface IApartmentRepository {
-  findById(id: ApartmentId): Observable<Apartment | null>
-  findAll(filter?: ApartmentFilter): Observable<Apartment[]>
-  save(apartment: Apartment): Observable<Apartment>
-  delete(id: ApartmentId): Observable<void>
-  findByUniqueIdentifier(uniqueIdentifier: string): Observable<Apartment | null>
+export abstract class IApartmentRepository {
+  abstract findById(id: ApartmentId): Observable<Apartment | null>
+  abstract findAll(filter?: ApartmentFilter): Observable<Apartment[]>
+  abstract save(apartment: Apartment): Observable<Apartment>
+  abstract delete(id: ApartmentId): Observable<void>
+  abstract findByUniqueIdentifier(uniqueIdentifier: string): Observable<Apartment | null>
 }

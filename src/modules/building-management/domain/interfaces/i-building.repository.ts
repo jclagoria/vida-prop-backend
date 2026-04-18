@@ -7,9 +7,9 @@ export interface BuildingFilter {
   country?: string
 }
 
-export interface IBuildingRepository {
-  findById(id: BuildingId): Observable<Building | null>
-  findAll(filter?: BuildingFilter): Observable<Building[]>
-  save(building: Building): Observable<Building>
-  delete(id: BuildingId): Observable<void>
+export abstract class IBuildingRepository {
+  abstract findById(id: BuildingId): Observable<Building | null>
+  abstract findAll(filter?: BuildingFilter): Observable<Building[]>
+  abstract save(building: Building): Observable<Building>
+  abstract delete(id: BuildingId): Observable<void>
 }

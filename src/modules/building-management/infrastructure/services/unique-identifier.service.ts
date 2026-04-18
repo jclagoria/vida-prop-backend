@@ -47,7 +47,7 @@ export class UniqueIdentifierService {
   validate(uniqueIdentifier: string): boolean {
     try {
       const parsed = this.parse(uniqueIdentifier)
-      return !!parsed.buildingCode && !isNaN(parsed.floorNumber)
+      return !!parsed.buildingCode && !Number.isNaN(parsed.floorNumber)
     } catch {
       return false
     }

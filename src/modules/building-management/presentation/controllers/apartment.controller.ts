@@ -8,6 +8,7 @@ import {
   Post as NestPost,
   NotFoundException,
   Param,
+  UseGuards,
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { firstValueFrom, throwError } from 'rxjs'
@@ -17,6 +18,7 @@ import type { BulkCreateApartmentsUseCase } from '@/modules/building-management/
 import type { CreateApartmentUseCase } from '@/modules/building-management/application/use-cases/apartment/create-apartment.usecase'
 import type { GetApartmentByIdentifierUseCase } from '@/modules/building-management/application/use-cases/apartment/get-apartment-by-identifier.usecase'
 import type { CsvParserService } from '@/modules/building-management/infrastructure/services/csv-parser.service'
+import { JwtAuthGuard } from '@/modules/user-management/infrastructure/auth/jwt-auth.guard'
 
 const mapApartmentToResponse = (apartment: {
   id: { toString(): string }
@@ -38,6 +40,7 @@ const mapApartmentToResponse = (apartment: {
 
 @ApiTags('Apartments')
 @Controller('api/v1/apartments')
+@UseGuards(JwtAuthGuard)
 export class ApartmentController {
   constructor(
     private readonly createApartmentUseCase: CreateApartmentUseCase,

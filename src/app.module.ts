@@ -3,6 +3,7 @@ import { HealthModule } from '@health/health.module'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { WinstonModule } from 'nest-winston'
+import { BuildingManagementModule } from './modules/building-management/presentation/building-management.module'
 import { UserManagementModule } from './modules/user-management/presentation/user-management.module'
 
 @Module({
@@ -14,6 +15,7 @@ import { UserManagementModule } from './modules/user-management/presentation/use
     WinstonModule.forRoot(winstonConfig),
     HealthModule,
     UserManagementModule,
+    BuildingManagementModule,
   ],
 })
 export class AppModule {}

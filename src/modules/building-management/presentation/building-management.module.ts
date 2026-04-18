@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common'
-import type { IApartmentServicePort } from '../application/ports/i-apartment.service'
-import type { IBodyServicePort } from '../application/ports/i-body.service'
-import type { IBuildingServicePort } from '../application/ports/i-building.service'
-import type { IFloorServicePort } from '../application/ports/i-floor.service'
+import { PassportModule } from '@nestjs/passport'
+import { JwtAuthGuard } from '@/modules/user-management/infrastructure/auth/jwt-auth.guard'
+import { RolesGuard } from '@/modules/user-management/infrastructure/auth/roles.guard'
 import { BulkCreateApartmentsUseCase } from '../application/use-cases/apartment/bulk-create-apartments.usecase'
 import { CreateApartmentUseCase } from '../application/use-cases/apartment/create-apartment.usecase'
 import { GetApartmentByIdentifierUseCase } from '../application/use-cases/apartment/get-apartment-by-identifier.usecase'
@@ -30,6 +29,7 @@ import { BuildingController } from './controllers/building.controller'
 import { FloorController } from './controllers/floor.controller'
 
 @Module({
+  imports: [PassportModule.register({ defaultStrategy: 'jwt' })],
   controllers: [BuildingController, BodyController, FloorController, ApartmentController],
   providers: [
     CreateBuildingUseCase,
@@ -45,6 +45,8 @@ import { FloorController } from './controllers/floor.controller'
     GetApartmentByIdentifierUseCase,
     BulkCreateApartmentsUseCase,
     CsvParserService,
+    JwtAuthGuard,
+    RolesGuard,
     {
       provide: IBuildingRepository,
       useClass: PrismaBuildingRepository,
@@ -62,6 +64,5 @@ import { FloorController } from './controllers/floor.controller'
       useClass: PrismaApartmentRepository,
     },
   ],
-  exports: [IBuildingRepository, IBodyRepository, IFloorRepository, IApartmentRepository],
 })
 export class BuildingManagementModule {}

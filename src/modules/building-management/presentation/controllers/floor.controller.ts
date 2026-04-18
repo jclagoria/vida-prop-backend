@@ -1,9 +1,10 @@
-import { BadRequestException, Controller, Post as NestPost, Param } from '@nestjs/common'
+import { BadRequestException, Controller, Post as NestPost, Param, UseGuards } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { firstValueFrom, throwError } from 'rxjs'
 import { catchError, map } from 'rxjs/operators'
 import type { CreateFloorDto } from '@/modules/building-management/application/dto/create-floor.dto'
 import type { CreateFloorUseCase } from '@/modules/building-management/application/use-cases/floor/create-floor.usecase'
+import { JwtAuthGuard } from '@/modules/user-management/infrastructure/auth/jwt-auth.guard'
 
 const mapFloorToResponse = (floor: {
   id: { toString(): string }
@@ -17,6 +18,7 @@ const mapFloorToResponse = (floor: {
 
 @ApiTags('Floors')
 @Controller('api/v1/buildings/:buildingId/bodies/:bodyId/floors')
+@UseGuards(JwtAuthGuard)
 export class FloorController {
   constructor(private readonly createFloorUseCase: CreateFloorUseCase) {}
 

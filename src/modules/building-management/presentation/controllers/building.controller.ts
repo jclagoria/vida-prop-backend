@@ -11,6 +11,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common'
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { firstValueFrom, throwError } from 'rxjs'
@@ -27,6 +28,7 @@ import type {
   GetBuildingStructureUseCase,
 } from '@/modules/building-management/application/use-cases/common/get-building-structure.usecase'
 import type { Building } from '@/modules/building-management/domain/entities/building.entity'
+import { JwtAuthGuard } from '@/modules/user-management/infrastructure/auth/jwt-auth.guard'
 import type { PaginatedResponse } from '../dto/paginated-response.dto'
 
 const mapBuildingToResponse = (building: Building) => ({
@@ -43,6 +45,7 @@ const mapBuildingToResponse = (building: Building) => ({
 
 @ApiTags('Buildings')
 @Controller('api/v1/buildings')
+@UseGuards(JwtAuthGuard)
 export class BuildingController {
   constructor(
     private readonly createBuildingUseCase: CreateBuildingUseCase,
@@ -72,7 +75,7 @@ export class BuildingController {
   async findAll(
     @Query() filter: BuildingFilterDto
   ): Promise<PaginatedResponse<ReturnType<typeof mapBuildingToResponse>>> {
-    const page = filter.page || 1
+    const _page = filter.page || 1
     const _limit = Math.min(filter.limit || 20, 100)
 
     return firstValueFrom(
