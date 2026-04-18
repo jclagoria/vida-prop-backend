@@ -59,7 +59,15 @@ export class ApartmentController {
     return firstValueFrom(
       this.createApartmentUseCase.execute(dto.floorId, dto).pipe(
         map(mapApartmentToResponse),
-        catchError((error) => throwError(() => new BadRequestException(error.message)))
+        catchError((error) =>
+          throwError(
+            () =>
+              new BadRequestException({
+                message: error.message,
+                code: 'APARTMENT_VALIDATION_ERROR',
+              })
+          )
+        )
       )
     )
   }
@@ -74,7 +82,15 @@ export class ApartmentController {
     return firstValueFrom(
       this.getApartmentByIdentifierUseCase.execute(uniqueId).pipe(
         map(mapApartmentToResponse),
-        catchError((error) => throwError(() => new NotFoundException(error.message)))
+        catchError((error) =>
+          throwError(
+            () =>
+              new NotFoundException({
+                message: error.message,
+                code: 'APARTMENT_NOT_FOUND',
+              })
+          )
+        )
       )
     )
   }
@@ -88,7 +104,15 @@ export class ApartmentController {
       this.csvParserService.parseApartmentCsv(body.csv).pipe(
         switchMap((apartments) => this.bulkCreateApartmentsUseCase.execute(apartments)),
         map((results) => ({ count: results.length })),
-        catchError((error) => throwError(() => new BadRequestException(error.message)))
+        catchError((error) =>
+          throwError(
+            () =>
+              new BadRequestException({
+                message: error.message,
+                code: 'APARTMENT_CSV_ERROR',
+              })
+          )
+        )
       )
     )
   }

@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common'
 import { of, throwError } from 'rxjs'
 import type { CreateBodyDto } from '@/modules/building-management/application/dto/create-body.dto'
 import type { CreateBodyUseCase } from '@/modules/building-management/application/use-cases/body/create-body.usecase'
@@ -46,11 +47,22 @@ describe('BodyController', () => {
       expect(mockCreateUseCase.execute).toHaveBeenCalledWith('building-id', dto)
     })
 
-    it('should throw BadRequestException on error', async () => {
+    it('should throw BadRequestException with BODY_VALIDATION_ERROR code on error', async () => {
       const dto: CreateBodyDto = { name: 'A' }
       mockCreateUseCase.execute.mockReturnValue(throwError(() => new Error('validation failed')))
 
-      await expect(controller.create('building-id', dto)).rejects.toThrow('validation failed')
+      await expect(controller.create('building-id', dto)).rejects.toThrow(BadRequestException)
+      try {
+        await controller.create('building-id', dto)
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException)
+        expect((error as BadRequestException).getResponse()).toEqual(
+          expect.objectContaining({
+            message: 'validation failed',
+            code: 'BODY_VALIDATION_ERROR',
+          })
+        )
+      }
     })
   })
 

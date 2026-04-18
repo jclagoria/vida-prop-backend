@@ -33,7 +33,15 @@ export class FloorController {
     return firstValueFrom(
       this.createFloorUseCase.execute(bodyId, dto).pipe(
         map(mapFloorToResponse),
-        catchError((error) => throwError(() => new BadRequestException(error.message)))
+        catchError((error) =>
+          throwError(
+            () =>
+              new BadRequestException({
+                message: error.message,
+                code: 'FLOOR_VALIDATION_ERROR',
+              })
+          )
+        )
       )
     )
   }
