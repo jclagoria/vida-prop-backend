@@ -23,6 +23,7 @@ describe('PrismaInvitationRepository', () => {
 
   beforeEach(() => {
     mockPrisma = {
+      $transaction: jest.fn((callback) => callback(mockPrisma)),
       invitation: {
         findUnique: jest.fn(),
         findFirst: jest.fn(),

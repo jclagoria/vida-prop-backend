@@ -20,6 +20,7 @@ describe('PrismaBuildingRepository', () => {
 
   beforeEach(() => {
     mockPrisma = {
+      $transaction: jest.fn((callback) => callback(mockPrisma)),
       building: {
         findUnique: jest.fn(),
         findMany: jest.fn(),
@@ -114,6 +115,59 @@ describe('PrismaBuildingRepository', () => {
             done()
           },
           error: done.fail,
+        })
+    })
+  })
+
+  describe('save', () => {
+    it('should call $transaction', (done) => {
+      mockPrisma.$transaction = jest.fn((callback) => callback(mockPrisma))
+      mockPrisma.building.create.mockResolvedValue(prismaBuilding)
+
+      const building = {
+        id: { toString: () => 'building-id' },
+        name: 'Test',
+        address: { toString: () => 'Test' },
+        city: 'Test',
+        country: 'ARGENTINA',
+        code: 'TEST',
+      } as any
+
+      repository
+        .save(building)
+        .pipe(take(1))
+        .subscribe({
+          next: () => {
+            expect(mockPrisma.$transaction).toHaveBeenCalled()
+            done()
+          },
+          error: done.fail,
+        })
+    })
+
+    it('should catch error and throw InternalServerErrorException', (done) => {
+      mockPrisma.$transaction = jest.fn(async () => {
+        throw new Error('DB error')
+      })
+
+      const building = {
+        id: { toString: () => 'building-id' },
+        name: 'Test',
+        address: { toString: () => 'Test' },
+        city: 'Test',
+        country: 'ARGENTINA',
+        code: 'TEST',
+      } as any
+
+      repository
+        .save(building)
+        .pipe(take(1))
+        .subscribe({
+          next: () => done.fail('Should have errored'),
+          error: (err) => {
+            expect(err.message).toBe('Failed to save building')
+            done()
+          },
         })
     })
   })

@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common'
-import { defer, from, map, type Observable, shareReplay, switchMap } from 'rxjs'
+import { Injectable, InternalServerErrorException } from '@nestjs/common'
+import { defer, from, map, type Observable, shareReplay, switchMap, throwError } from 'rxjs'
+import { catchError } from 'rxjs/operators'
 import type { Invitation } from '@/modules/user-management/domain/entities/invitation.entity'
 import { InvitationStatus } from '@/modules/user-management/domain/enums/invitation-status.enum'
 import type {
@@ -52,11 +53,24 @@ export class PrismaInvitationRepository implements IInvitationRepository {
   save(invitation: Invitation): Observable<Invitation> {
     return defer(() =>
       from(
-        this.prisma.invitation.create({
-          data: InvitationMapper.toPrismaCreate(invitation),
+        this.prisma.$transaction(async (tx: any) => {
+          const created = await tx.invitation.create({
+            data: InvitationMapper.toPrismaCreate(invitation),
+          })
+          return created
         })
       )
-    ).pipe(map((prismaInvitation: any) => InvitationMapper.toDomain(prismaInvitation)))
+    ).pipe(
+      map((prismaInvitation: any) => InvitationMapper.toDomain(prismaInvitation)),
+      catchError((error) => {
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        console.error('[PrismaInvitationRepository] Transaction failed', {
+          error: message,
+          invitationId: invitation.id,
+        })
+        return throwError(() => new InternalServerErrorException('Failed to save invitation'))
+      })
+    )
   }
 
   update(invitation: Invitation): Observable<Invitation> {
