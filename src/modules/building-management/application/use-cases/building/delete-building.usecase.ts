@@ -1,15 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston'
 import { type Observable, throwError } from 'rxjs'
 import { catchError, switchMap } from 'rxjs/operators'
+import type * as winston from 'winston'
 import type { Building } from '@/modules/building-management/domain/entities/building.entity'
 import type { BuildingDomainService } from '@/modules/building-management/domain/services/building.domain-service'
 import type { IBuildingServicePort } from '../../ports/i-building.service'
 
 @Injectable()
 export class DeleteBuildingUseCase {
-  private readonly logger = new Logger(DeleteBuildingUseCase.name)
-
   constructor(
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: winston.Logger,
     private readonly buildingService: IBuildingServicePort,
     private readonly domainService: BuildingDomainService
   ) {}
@@ -28,15 +30,12 @@ export class DeleteBuildingUseCase {
         return this.buildingService.delete(id)
       }),
       catchError((error) => {
-        this.logger.error(
-          'DeleteBuildingUseCase.execute failed',
-          error instanceof Error ? error.stack : undefined,
-          {
-            useCase: 'DeleteBuildingUseCase',
-            operation: 'execute',
-            error: error instanceof Error ? error.message : 'Unknown error',
-          }
-        )
+        this.logger.error('DeleteBuildingUseCase.execute failed', {
+          trace: error instanceof Error ? error.stack : undefined,
+          context: 'DeleteBuildingUseCase',
+          operation: 'execute',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
         return throwError(() => error)
       })
     )

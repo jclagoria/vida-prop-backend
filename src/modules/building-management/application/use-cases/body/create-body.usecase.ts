@@ -1,6 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston'
 import { type Observable, throwError } from 'rxjs'
 import { catchError, switchMap } from 'rxjs/operators'
+import type * as winston from 'winston'
 import { Body } from '@/modules/building-management/domain/entities/body.entity'
 import type { CreateBodyDto } from '../../dto/create-body.dto'
 import type { IBodyServicePort } from '../../ports/i-body.service'
@@ -8,9 +10,9 @@ import type { IBuildingServicePort } from '../../ports/i-building.service'
 
 @Injectable()
 export class CreateBodyUseCase {
-  private readonly logger = new Logger(CreateBodyUseCase.name)
-
   constructor(
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: winston.Logger,
     private readonly buildingService: IBuildingServicePort,
     private readonly bodyService: IBodyServicePort
   ) {}
@@ -26,15 +28,12 @@ export class CreateBodyUseCase {
         return this.bodyService.create(buildingId, dto)
       }),
       catchError((error) => {
-        this.logger.error(
-          'CreateBodyUseCase.execute failed',
-          error instanceof Error ? error.stack : undefined,
-          {
-            useCase: 'CreateBodyUseCase',
-            operation: 'execute',
-            error: error instanceof Error ? error.message : 'Unknown error',
-          }
-        )
+        this.logger.error('CreateBodyUseCase.execute failed', {
+          trace: error instanceof Error ? error.stack : undefined,
+          context: 'CreateBodyUseCase',
+          operation: 'execute',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
         return throwError(() => error)
       })
     )

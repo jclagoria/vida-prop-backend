@@ -23,12 +23,20 @@ describe('GetBuildingUseCase', () => {
     })
   }
 
+  const mockLogger = {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+  }
+
   beforeEach(() => {
     mockBuildingService = {
       findById: jest.fn(),
     }
 
-    useCase = new GetBuildingUseCase(mockBuildingService as never)
+    useCase = new GetBuildingUseCase(mockLogger as never, mockBuildingService as never)
   })
 
   describe('execute', () => {

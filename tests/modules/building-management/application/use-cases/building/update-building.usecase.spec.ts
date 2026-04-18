@@ -25,6 +25,14 @@ describe('UpdateBuildingUseCase', () => {
     })
   }
 
+  const mockLogger = {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+  }
+
   beforeEach(() => {
     mockBuildingService = {
       findById: jest.fn(),
@@ -35,7 +43,11 @@ describe('UpdateBuildingUseCase', () => {
       validateBuilding: jest.fn(),
     }
 
-    useCase = new UpdateBuildingUseCase(mockBuildingService as never, mockDomainService as never)
+    useCase = new UpdateBuildingUseCase(
+      mockLogger as never,
+      mockBuildingService as never,
+      mockDomainService as never
+    )
   })
 
   describe('execute', () => {

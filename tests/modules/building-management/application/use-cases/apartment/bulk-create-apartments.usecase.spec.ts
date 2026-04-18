@@ -23,12 +23,20 @@ describe('BulkCreateApartmentsUseCase', () => {
     )
   }
 
+  const mockLogger = {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+  }
+
   beforeEach(() => {
     mockApartmentService = {
       bulkCreate: jest.fn(),
     }
 
-    useCase = new BulkCreateApartmentsUseCase(mockApartmentService as never)
+    useCase = new BulkCreateApartmentsUseCase(mockLogger as never, mockApartmentService as never)
   })
 
   describe('execute', () => {

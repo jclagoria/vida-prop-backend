@@ -1,14 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston'
 import { type Observable, throwError } from 'rxjs'
 import { catchError, switchMap } from 'rxjs/operators'
+import type * as winston from 'winston'
 import type { Apartment } from '@/modules/building-management/domain/entities/apartment.entity'
 import type { BulkApartmentData, IApartmentServicePort } from '../../ports/i-apartment.service'
 
 @Injectable()
 export class BulkCreateApartmentsUseCase {
-  private readonly logger = new Logger(BulkCreateApartmentsUseCase.name)
-
-  constructor(private readonly apartmentService: IApartmentServicePort) {}
+  constructor(
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: winston.Logger,
+    private readonly apartmentService: IApartmentServicePort
+  ) {}
 
   execute(apartments: BulkApartmentData[]): Observable<Apartment[]> {
     if (!apartments || apartments.length === 0) {
@@ -17,15 +21,12 @@ export class BulkCreateApartmentsUseCase {
 
     return this.apartmentService.bulkCreate(apartments).pipe(
       catchError((error) => {
-        this.logger.error(
-          'BulkCreateApartmentsUseCase.execute failed',
-          error instanceof Error ? error.stack : undefined,
-          {
-            useCase: 'BulkCreateApartmentsUseCase',
-            operation: 'execute',
-            error: error instanceof Error ? error.message : 'Unknown error',
-          }
-        )
+        this.logger.error('BulkCreateApartmentsUseCase.execute failed', {
+          trace: error instanceof Error ? error.stack : undefined,
+          context: 'BulkCreateApartmentsUseCase',
+          operation: 'execute',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
         return throwError(() => error)
       })
     )

@@ -25,6 +25,14 @@ describe('DeleteBuildingUseCase', () => {
     })
   }
 
+  const mockLogger = {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+  }
+
   beforeEach(() => {
     mockBuildingService = {
       findById: jest.fn(),
@@ -35,7 +43,11 @@ describe('DeleteBuildingUseCase', () => {
       canDeleteBuilding: jest.fn(),
     }
 
-    useCase = new DeleteBuildingUseCase(mockBuildingService as never, mockDomainService as never)
+    useCase = new DeleteBuildingUseCase(
+      mockLogger as never,
+      mockBuildingService as never,
+      mockDomainService as never
+    )
   })
 
   describe('execute', () => {

@@ -1,13 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston'
 import { type Observable, throwError } from 'rxjs'
 import { catchError, switchMap } from 'rxjs/operators'
+import type * as winston from 'winston'
 import type { IFloorServicePort } from '../../ports/i-floor.service'
 
 @Injectable()
 export class DeleteFloorUseCase {
-  private readonly logger = new Logger(DeleteFloorUseCase.name)
-
-  constructor(private readonly floorService: IFloorServicePort) {}
+  constructor(
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: winston.Logger,
+    private readonly floorService: IFloorServicePort
+  ) {}
 
   execute(id: string): Observable<void> {
     return this.floorService.findById(id).pipe(
@@ -18,15 +22,12 @@ export class DeleteFloorUseCase {
         return this.floorService.delete(id)
       }),
       catchError((error) => {
-        this.logger.error(
-          'DeleteFloorUseCase.execute failed',
-          error instanceof Error ? error.stack : undefined,
-          {
-            useCase: 'DeleteFloorUseCase',
-            operation: 'execute',
-            error: error instanceof Error ? error.message : 'Unknown error',
-          }
-        )
+        this.logger.error('DeleteFloorUseCase.execute failed', {
+          trace: error instanceof Error ? error.stack : undefined,
+          context: 'DeleteFloorUseCase',
+          operation: 'execute',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
         return throwError(() => error)
       })
     )

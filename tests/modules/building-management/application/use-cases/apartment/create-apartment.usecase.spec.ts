@@ -22,6 +22,14 @@ describe('CreateApartmentUseCase', () => {
     return Apartment.create(floor.id, '01', UniqueIdentifier.create('BLD001', 3, '01'), 2, 50)
   }
 
+  const mockLogger = {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+  }
+
   beforeEach(() => {
     mockFloorService = {
       findById: jest.fn(),
@@ -31,7 +39,11 @@ describe('CreateApartmentUseCase', () => {
       create: jest.fn(),
     }
 
-    useCase = new CreateApartmentUseCase(mockFloorService as never, mockApartmentService as never)
+    useCase = new CreateApartmentUseCase(
+      mockLogger as never,
+      mockFloorService as never,
+      mockApartmentService as never
+    )
   })
 
   describe('execute', () => {
