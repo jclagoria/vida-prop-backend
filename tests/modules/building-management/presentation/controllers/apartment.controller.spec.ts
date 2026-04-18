@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common'
 import { of, throwError } from 'rxjs'
 import type { BulkCreateApartmentsUseCase } from '@/modules/building-management/application/use-cases/apartment/bulk-create-apartments.usecase'
 import type { CreateApartmentUseCase } from '@/modules/building-management/application/use-cases/apartment/create-apartment.usecase'
@@ -86,10 +87,21 @@ describe('ApartmentController', () => {
       expect(result.count).toBe(1)
     })
 
-    it('should throw BadRequestException on error', async () => {
+    it('should throw BadRequestException with APARTMENT_CSV_ERROR code on error', async () => {
       const body = { csv: 'invalid' }
 
-      await expect(controller.bulkImport(body)).rejects.toThrow('CSV must have at least a header')
+      await expect(controller.bulkImport(body)).rejects.toThrow(BadRequestException)
+      try {
+        await controller.bulkImport(body)
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException)
+        expect((error as BadRequestException).getResponse()).toEqual(
+          expect.objectContaining({
+            message: 'CSV must have at least a header and one data row',
+            code: 'APARTMENT_CSV_ERROR',
+          })
+        )
+      }
     })
   })
 })

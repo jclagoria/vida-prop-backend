@@ -64,7 +64,15 @@ export class BuildingController {
     return firstValueFrom(
       this.createBuildingUseCase.execute(dto).pipe(
         map(mapBuildingToResponse),
-        catchError((error) => throwError(() => new BadRequestException(error.message)))
+        catchError((error) =>
+          throwError(
+            () =>
+              new BadRequestException({
+                message: error.message,
+                code: 'BUILDING_VALIDATION_ERROR',
+              })
+          )
+        )
       )
     )
   }
@@ -84,7 +92,15 @@ export class BuildingController {
           ...result,
           data: result.data.map(mapBuildingToResponse),
         })),
-        catchError((error) => throwError(() => new BadRequestException(error.message)))
+        catchError((error) =>
+          throwError(
+            () =>
+              new BadRequestException({
+                message: error.message,
+                code: 'BUILDING_VALIDATION_ERROR',
+              })
+          )
+        )
       )
     )
   }
@@ -97,7 +113,15 @@ export class BuildingController {
     return firstValueFrom(
       this.getBuildingUseCase.execute(id).pipe(
         map(mapBuildingToResponse),
-        catchError((error) => throwError(() => new NotFoundException(error.message)))
+        catchError((error) =>
+          throwError(
+            () =>
+              new NotFoundException({
+                message: error.message,
+                code: 'BUILDING_NOT_FOUND',
+              })
+          )
+        )
       )
     )
   }
@@ -113,7 +137,15 @@ export class BuildingController {
     return firstValueFrom(
       this.updateBuildingUseCase.execute(id, dto).pipe(
         map(mapBuildingToResponse),
-        catchError((error) => throwError(() => new BadRequestException(error.message)))
+        catchError((error) =>
+          throwError(
+            () =>
+              new BadRequestException({
+                message: error.message,
+                code: 'BUILDING_VALIDATION_ERROR',
+              })
+          )
+        )
       )
     )
   }
@@ -125,9 +157,17 @@ export class BuildingController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   async remove(@Param('id') id: string): Promise<void> {
     return firstValueFrom(
-      this.deleteBuildingUseCase
-        .execute(id)
-        .pipe(catchError((error) => throwError(() => new BadRequestException(error.message))))
+      this.deleteBuildingUseCase.execute(id).pipe(
+        catchError((error) =>
+          throwError(
+            () =>
+              new BadRequestException({
+                message: error.message,
+                code: 'BUILDING_VALIDATION_ERROR',
+              })
+          )
+        )
+      )
     )
   }
 
@@ -137,9 +177,17 @@ export class BuildingController {
   @ApiResponse({ status: 404, description: 'Building not found' })
   async getStructure(@Param('id') id: string): Promise<BuildingStructure> {
     return firstValueFrom(
-      this.getBuildingStructureUseCase
-        .execute(id)
-        .pipe(catchError((error) => throwError(() => new NotFoundException(error.message))))
+      this.getBuildingStructureUseCase.execute(id).pipe(
+        catchError((error) =>
+          throwError(
+            () =>
+              new NotFoundException({
+                message: error.message,
+                code: 'BUILDING_NOT_FOUND',
+              })
+          )
+        )
+      )
     )
   }
 }

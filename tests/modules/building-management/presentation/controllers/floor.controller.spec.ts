@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common'
 import { of, throwError } from 'rxjs'
 import type { CreateFloorDto } from '@/modules/building-management/application/dto/create-floor.dto'
 import type { CreateFloorUseCase } from '@/modules/building-management/application/use-cases/floor/create-floor.usecase'
@@ -41,11 +42,22 @@ describe('FloorController', () => {
       expect(mockCreateUseCase.execute).toHaveBeenCalledWith('body-id', dto)
     })
 
-    it('should throw BadRequestException on error', async () => {
+    it('should throw BadRequestException with FLOOR_VALIDATION_ERROR code on error', async () => {
       const dto: CreateFloorDto = { floorNumber: 3 }
       mockCreateUseCase.execute.mockReturnValue(throwError(() => new Error('validation failed')))
 
-      await expect(controller.create('body-id', dto)).rejects.toThrow('validation failed')
+      await expect(controller.create('body-id', dto)).rejects.toThrow(BadRequestException)
+      try {
+        await controller.create('body-id', dto)
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException)
+        expect((error as BadRequestException).getResponse()).toEqual(
+          expect.objectContaining({
+            message: 'validation failed',
+            code: 'FLOOR_VALIDATION_ERROR',
+          })
+        )
+      }
     })
   })
 })

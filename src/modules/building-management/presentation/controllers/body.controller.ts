@@ -46,7 +46,15 @@ export class BodyController {
     return firstValueFrom(
       this.createBodyUseCase.execute(buildingId, dto).pipe(
         map(mapBodyToResponse),
-        catchError((error) => throwError(() => new BadRequestException(error.message)))
+        catchError((error) =>
+          throwError(
+            () =>
+              new BadRequestException({
+                message: error.message,
+                code: 'BODY_VALIDATION_ERROR',
+              })
+          )
+        )
       )
     )
   }
@@ -58,9 +66,17 @@ export class BodyController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   async remove(@Param('buildingId') _buildingId: string, @Param('id') id: string): Promise<void> {
     return firstValueFrom(
-      this.deleteBodyUseCase
-        .execute(id)
-        .pipe(catchError((error) => throwError(() => new BadRequestException(error.message))))
+      this.deleteBodyUseCase.execute(id).pipe(
+        catchError((error) =>
+          throwError(
+            () =>
+              new BadRequestException({
+                message: error.message,
+                code: 'BODY_VALIDATION_ERROR',
+              })
+          )
+        )
+      )
     )
   }
 }

@@ -1,3 +1,4 @@
+import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { of, throwError } from 'rxjs'
 import type { BuildingFilterDto } from '@/modules/building-management/application/dto/building-filter.dto'
 import type { CreateBuildingDto } from '@/modules/building-management/application/dto/create-building.dto'
@@ -77,7 +78,7 @@ describe('BuildingController', () => {
       expect(mockCreateUseCase.execute).toHaveBeenCalledWith(dto)
     })
 
-    it('should throw BadRequestException on error', async () => {
+    it('should throw BadRequestException with BUILDING_VALIDATION_ERROR code on error', async () => {
       const dto: CreateBuildingDto = {
         name: 'Test Building',
         address: 'Test Street 123',
@@ -87,7 +88,18 @@ describe('BuildingController', () => {
       }
       mockCreateUseCase.execute.mockReturnValue(throwError(() => new Error('validation failed')))
 
-      await expect(controller.create(dto)).rejects.toThrow('validation failed')
+      await expect(controller.create(dto)).rejects.toThrow(BadRequestException)
+      try {
+        await controller.create(dto)
+      } catch (error) {
+        expect(error).toBeInstanceOf(BadRequestException)
+        expect((error as BadRequestException).getResponse()).toEqual(
+          expect.objectContaining({
+            message: 'validation failed',
+            code: 'BUILDING_VALIDATION_ERROR',
+          })
+        )
+      }
     })
   })
 
@@ -118,12 +130,23 @@ describe('BuildingController', () => {
       )
     })
 
-    it('should throw NotFoundException when not found', async () => {
+    it('should throw NotFoundException with BUILDING_NOT_FOUND code when not found', async () => {
       mockGetBuildingUseCase.execute.mockReturnValue(
         throwError(() => new Error('Building not found'))
       )
 
-      await expect(controller.findOne('non-existent')).rejects.toThrow('Building not found')
+      await expect(controller.findOne('non-existent')).rejects.toThrow(NotFoundException)
+      try {
+        await controller.findOne('non-existent')
+      } catch (error) {
+        expect(error).toBeInstanceOf(NotFoundException)
+        expect((error as NotFoundException).getResponse()).toEqual(
+          expect.objectContaining({
+            message: 'Building not found',
+            code: 'BUILDING_NOT_FOUND',
+          })
+        )
+      }
     })
   })
 
@@ -163,12 +186,23 @@ describe('BuildingController', () => {
       expect(result.id).toBe('building-id')
     })
 
-    it('should throw NotFoundException when not found', async () => {
+    it('should throw NotFoundException with BUILDING_NOT_FOUND code when not found', async () => {
       mockGetBuildingStructureUseCase.execute.mockReturnValue(
         throwError(() => new Error('Building not found'))
       )
 
-      await expect(controller.getStructure('non-existent')).rejects.toThrow('Building not found')
+      await expect(controller.getStructure('non-existent')).rejects.toThrow(NotFoundException)
+      try {
+        await controller.getStructure('non-existent')
+      } catch (error) {
+        expect(error).toBeInstanceOf(NotFoundException)
+        expect((error as NotFoundException).getResponse()).toEqual(
+          expect.objectContaining({
+            message: 'Building not found',
+            code: 'BUILDING_NOT_FOUND',
+          })
+        )
+      }
     })
   })
 })
