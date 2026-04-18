@@ -1,6 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston'
 import { Observable, type Observable as ObservableType, throwError } from 'rxjs'
 import { catchError, switchMap } from 'rxjs/operators'
+import type * as winston from 'winston'
 import type { IApartmentServicePort } from '../../ports/i-apartment.service'
 import type { IBodyServicePort } from '../../ports/i-body.service'
 import type { IBuildingServicePort } from '../../ports/i-building.service'
@@ -29,9 +31,9 @@ export interface BuildingStructure {
 
 @Injectable()
 export class GetBuildingStructureUseCase {
-  private readonly logger = new Logger(GetBuildingStructureUseCase.name)
-
   constructor(
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: winston.Logger,
     private readonly buildingService: IBuildingServicePort,
     private readonly bodyService: IBodyServicePort
   ) {}
@@ -64,15 +66,12 @@ export class GetBuildingStructureUseCase {
         )
       }),
       catchError((error) => {
-        this.logger.error(
-          'GetBuildingStructureUseCase.execute failed',
-          error instanceof Error ? error.stack : undefined,
-          {
-            useCase: 'GetBuildingStructureUseCase',
-            operation: 'execute',
-            error: error instanceof Error ? error.message : 'Unknown error',
-          }
-        )
+        this.logger.error('GetBuildingStructureUseCase.execute failed', {
+          trace: error instanceof Error ? error.stack : undefined,
+          context: 'GetBuildingStructureUseCase',
+          operation: 'execute',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        })
         return throwError(() => error)
       })
     )
