@@ -1,6 +1,6 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common'
-import { defer, from, map, type Observable, shareReplay, switchMap, throwError } from 'rxjs'
-import { catchError } from 'rxjs/operators'
+import { Injectable } from '@nestjs/common'
+import { defer, from, map, type Observable, shareReplay, switchMap } from 'rxjs'
+import { PrismaBaseRepository } from '@/common/repositories/prisma-base.repository'
 import type { Invitation } from '@/modules/user-management/domain/entities/invitation.entity'
 import { InvitationStatus } from '@/modules/user-management/domain/enums/invitation-status.enum'
 import type {
@@ -10,20 +10,32 @@ import type {
 import { InvitationMapper } from '@/modules/user-management/infrastructure/repositories/mappers/invitation.mapper'
 
 @Injectable()
-export class PrismaInvitationRepository implements IInvitationRepository {
-  private prisma: any
-
+export class PrismaInvitationRepository
+  extends PrismaBaseRepository<Invitation, any, any, any, string>
+  implements IInvitationRepository
+{
   constructor(prisma: any) {
-    this.prisma = prisma
+    super(prisma, 'Invitation')
   }
 
-  findById(id: string): Observable<Invitation | null> {
-    return defer(() => from(this.prisma.invitation.findUnique({ where: { id } }))).pipe(
-      map((prismaInvitation: any) =>
-        prismaInvitation ? InvitationMapper.toDomain(prismaInvitation) : null
-      ),
-      shareReplay(1)
-    )
+  protected getModel(): string {
+    return 'invitation'
+  }
+
+  protected toDomain(prismaEntity: any): Invitation {
+    return InvitationMapper.toDomain(prismaEntity)
+  }
+
+  protected toPrismaCreate(entity: Invitation): any {
+    return InvitationMapper.toPrismaCreate(entity)
+  }
+
+  protected toPrismaUpdate(entity: Invitation): any {
+    return InvitationMapper.toPrismaUpdate(entity)
+  }
+
+  protected getId(entity: Invitation): string {
+    return entity.id
   }
 
   findByToken(token: string): Observable<Invitation | null> {
@@ -50,44 +62,17 @@ export class PrismaInvitationRepository implements IInvitationRepository {
     )
   }
 
-  save(invitation: Invitation): Observable<Invitation> {
-    return defer(() =>
-      from(
-        this.prisma.$transaction(async (tx: any) => {
-          const created = await tx.invitation.create({
-            data: InvitationMapper.toPrismaCreate(invitation),
-          })
-          return created
-        })
-      )
-    ).pipe(
-      map((prismaInvitation: any) => InvitationMapper.toDomain(prismaInvitation)),
-      catchError((error) => {
-        const message = error instanceof Error ? error.message : 'Unknown error'
-        console.error('[PrismaInvitationRepository] Transaction failed', {
-          error: message,
-          invitationId: invitation.id,
-        })
-        return throwError(() => new InternalServerErrorException('Failed to save invitation'))
-      })
-    )
-  }
-
   update(invitation: Invitation): Observable<Invitation> {
     return defer(() =>
       from(
-        this.prisma.invitation.update({
-          where: { id: invitation.id },
-          data: InvitationMapper.toPrismaUpdate(invitation),
+        this.prisma.$transaction(async (tx: any) => {
+          return tx.invitation.update({
+            where: { id: invitation.id },
+            data: InvitationMapper.toPrismaUpdate(invitation),
+          })
         })
       )
     ).pipe(map((prismaInvitation: any) => InvitationMapper.toDomain(prismaInvitation)))
-  }
-
-  delete(id: string): Observable<void> {
-    return defer(() => from(this.prisma.invitation.delete({ where: { id } }))).pipe(
-      map(() => void 0)
-    )
   }
 
   findMany(options: {

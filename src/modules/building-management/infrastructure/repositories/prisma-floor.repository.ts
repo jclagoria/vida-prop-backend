@@ -1,6 +1,7 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common'
-import { defer, from, type Observable, throwError } from 'rxjs'
-import { catchError, map, shareReplay } from 'rxjs/operators'
+import { Injectable } from '@nestjs/common'
+import { defer, from, type Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
+import { PrismaBaseRepository } from '@/common/repositories/prisma-base.repository'
 import type { Floor } from '@/modules/building-management/domain/entities/floor.entity'
 import type { IFloorRepository } from '@/modules/building-management/domain/interfaces/i-floor.repository'
 import type { BodyId } from '@/modules/building-management/domain/value-objects/body-id.value-object'
@@ -8,18 +9,32 @@ import type { FloorId } from '@/modules/building-management/domain/value-objects
 import { FloorMapper } from '../mappers/floor.mapper'
 
 @Injectable()
-export class PrismaFloorRepository implements IFloorRepository {
-  private prisma: any
-
+export class PrismaFloorRepository
+  extends PrismaBaseRepository<Floor, any, any, any, FloorId>
+  implements IFloorRepository
+{
   constructor(prisma: any) {
-    this.prisma = prisma
+    super(prisma, 'Floor')
   }
 
-  findById(id: FloorId): Observable<Floor | null> {
-    return defer(() => from(this.prisma.floor.findUnique({ where: { id: id.toString() } }))).pipe(
-      map((prismaFloor: any) => (prismaFloor ? FloorMapper.toDomain(prismaFloor) : null)),
-      shareReplay(1)
-    )
+  protected getModel(): string {
+    return 'floor'
+  }
+
+  protected toDomain(prismaEntity: any): Floor {
+    return FloorMapper.toDomain(prismaEntity)
+  }
+
+  protected toPrismaCreate(entity: Floor): any {
+    return FloorMapper.toPrismaCreate(entity)
+  }
+
+  protected toPrismaUpdate(entity: Floor): any {
+    return FloorMapper.toPrismaUpdate(entity)
+  }
+
+  protected getId(entity: Floor): FloorId {
+    return entity.id
   }
 
   findByBodyId(bodyId: BodyId): Observable<Floor[]> {
@@ -31,33 +46,5 @@ export class PrismaFloorRepository implements IFloorRepository {
     ).pipe(
       map((prismaFloors: any) => (prismaFloors as any[]).map((p) => FloorMapper.toDomain(p)))
     ) as Observable<Floor[]>
-  }
-
-  save(floor: Floor): Observable<Floor> {
-    const data = FloorMapper.toPrismaCreate(floor)
-    return defer(() =>
-      from(
-        this.prisma.$transaction(async (tx: any) => {
-          const created = await tx.floor.create({ data })
-          return created
-        })
-      )
-    ).pipe(
-      map((prismaFloor: any) => FloorMapper.toDomain(prismaFloor)),
-      catchError((error) => {
-        const message = error instanceof Error ? error.message : 'Unknown error'
-        console.error('[PrismaFloorRepository] Transaction failed', {
-          error: message,
-          floorId: floor.id.toString(),
-        })
-        return throwError(() => new InternalServerErrorException('Failed to save floor'))
-      })
-    )
-  }
-
-  delete(id: FloorId): Observable<void> {
-    return defer(() => from(this.prisma.floor.delete({ where: { id: id.toString() } }))).pipe(
-      map(() => undefined)
-    )
   }
 }
