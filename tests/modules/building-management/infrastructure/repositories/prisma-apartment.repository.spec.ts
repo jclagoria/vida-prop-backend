@@ -22,6 +22,7 @@ describe('PrismaApartmentRepository', () => {
 
   beforeEach(() => {
     mockPrisma = {
+      $transaction: jest.fn((callback) => callback(mockPrisma)),
       apartment: {
         findUnique: jest.fn(),
         findMany: jest.fn(),

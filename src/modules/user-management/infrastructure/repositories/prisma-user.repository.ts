@@ -1,6 +1,7 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common'
-import { defer, EMPTY, from, type Observable, throwError } from 'rxjs'
-import { catchError, map, shareReplay, switchMap } from 'rxjs/operators'
+import { Injectable } from '@nestjs/common'
+import { defer, from, type Observable } from 'rxjs'
+import { map, shareReplay } from 'rxjs/operators'
+import { PrismaBaseRepository } from '@/common/repositories/prisma-base.repository'
 import type { User } from '@/modules/user-management/domain/entities/user.entity'
 import type { IUserRepository } from '@/modules/user-management/domain/interfaces/i-user.repository'
 import type { Email } from '@/modules/user-management/domain/value-objects/email.value-object'
@@ -8,18 +9,32 @@ import type { UserId } from '@/modules/user-management/domain/value-objects/user
 import { UserMapper } from './mappers/user.mapper'
 
 @Injectable()
-export class PrismaUserRepository implements IUserRepository {
-  private prisma: any
-
+export class PrismaUserRepository
+  extends PrismaBaseRepository<User, any, any, any, UserId>
+  implements IUserRepository
+{
   constructor(prisma: any) {
-    this.prisma = prisma
+    super(prisma, 'User')
   }
 
-  findById(id: UserId): Observable<User | null> {
-    return defer(() => from(this.prisma.user.findUnique({ where: { id: id.toString() } }))).pipe(
-      map((prismaUser: any) => (prismaUser ? UserMapper.toDomain(prismaUser) : null)),
-      shareReplay(1)
-    )
+  protected getModel(): string {
+    return 'user'
+  }
+
+  protected toDomain(prismaEntity: any): User {
+    return UserMapper.toDomain(prismaEntity)
+  }
+
+  protected toPrismaCreate(entity: User): any {
+    return UserMapper.toPrismaCreate(entity)
+  }
+
+  protected toPrismaUpdate(entity: User): any {
+    return UserMapper.toPrismaUpdate(entity)
+  }
+
+  protected getId(entity: User): UserId {
+    return entity.id
   }
 
   findByEmail(email: Email): Observable<User | null> {
@@ -31,49 +46,16 @@ export class PrismaUserRepository implements IUserRepository {
     )
   }
 
-  findAll(): Observable<User[]> {
-    return defer(() => from(this.prisma.user.findMany() as Promise<any[]>)).pipe(
-      map((users: any[]) => users.map((u: any) => UserMapper.toDomain(u)))
-    ) as Observable<User[]>
-  }
-
-  save(user: User): Observable<User> {
-    return defer(() =>
-      from(
-        this.prisma.$transaction(async (tx: any) => {
-          const created = await tx.user.create({
-            data: UserMapper.toPrismaCreate(user),
-          })
-          return created
-        })
-      )
-    ).pipe(
-      map((prismaUser: any) => UserMapper.toDomain(prismaUser)),
-      catchError((error) => {
-        const message = error instanceof Error ? error.message : 'Unknown error'
-        console.error('[PrismaUserRepository] Transaction failed', {
-          error: message,
-          userId: user.id.toString(),
-        })
-        return throwError(() => new InternalServerErrorException('Failed to save user'))
-      })
-    )
-  }
-
   update(user: User): Observable<User> {
     return defer(() =>
       from(
-        this.prisma.user.update({
-          where: { id: user.id.toString() },
-          data: UserMapper.toPrismaUpdate(user),
+        this.prisma.$transaction(async (tx: any) => {
+          return tx.user.update({
+            where: { id: user.id.toString() },
+            data: UserMapper.toPrismaUpdate(user),
+          })
         })
       )
     ).pipe(map((prismaUser: any) => UserMapper.toDomain(prismaUser)))
-  }
-
-  delete(id: UserId): Observable<void> {
-    return defer(() => from(this.prisma.user.delete({ where: { id: id.toString() } }))).pipe(
-      map(() => void 0)
-    )
   }
 }
