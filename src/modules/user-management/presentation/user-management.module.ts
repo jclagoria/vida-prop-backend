@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
+import { SessionModule } from '@/modules/session/session.module'
 import { AUTH_SERVICE_PORT } from '@/modules/user-management/application/ports/i-auth.service'
 import { INVITATION_SERVICE_PORT } from '@/modules/user-management/application/ports/i-invitation.service'
 import { LoginUseCase } from '@/modules/user-management/application/use-cases/auth/login.usecase'
@@ -33,6 +34,7 @@ import { UserController } from './controllers/user.controller'
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '15m' },
     }),
+    SessionModule,
   ],
   controllers: [AuthController, UserController, InvitationController],
   providers: [

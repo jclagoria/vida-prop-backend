@@ -48,10 +48,17 @@ describe('AuthService', () => {
       findByEmail: jest.fn(),
     }
 
+    const mockSessionService = {
+      storeRefreshToken: jest.fn().mockResolvedValue(undefined),
+      getRefreshToken: jest.fn(),
+      revokeRefreshToken: jest.fn().mockResolvedValue(undefined),
+    }
+
     service = new AuthService(
       mockJwtAdapter as never,
       mockBcryptAdapter as never,
-      mockUserRepository as never
+      mockUserRepository as never,
+      mockSessionService as never
     )
   })
 
