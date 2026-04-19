@@ -1,4 +1,5 @@
 import { winstonConfig } from '@common/logging/winston.config'
+import { RedisCacheModule, RedisCoreModule } from '@common/redis/redis.module'
 import { HealthModule } from '@health/health.module'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
@@ -13,6 +14,8 @@ import { UserManagementModule } from './modules/user-management/presentation/use
       envFilePath: '.env',
     }),
     WinstonModule.forRoot(winstonConfig),
+    RedisCoreModule,
+    RedisCacheModule,
     HealthModule,
     UserManagementModule,
     BuildingManagementModule,

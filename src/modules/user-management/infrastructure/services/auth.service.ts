@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import type { Observable } from 'rxjs'
 import { from, of } from 'rxjs'
 import { switchMap } from 'rxjs/operators'
+import type { SessionService } from '@/modules/session/services/session.service'
 import {
   AUTH_SERVICE_PORT,
   type AuthTokens,
@@ -21,7 +22,8 @@ export class AuthService implements IAuthServicePort {
   constructor(
     private readonly jwtAdapter: JwtAdapter,
     private readonly bcryptAdapter: BcryptAdapter,
-    private readonly userRepository: PrismaUserRepository
+    private readonly userRepository: PrismaUserRepository,
+    private readonly sessionService: SessionService
   ) {}
 
   validateCredentials(email: Email, password: Password): Observable<User | null> {
@@ -60,6 +62,19 @@ export class AuthService implements IAuthServicePort {
       userId: user.id.toString(),
     })
     const tokens = this.jwtAdapter.generateTokens(user)
+    this.sessionService
+      .storeRefreshToken(user.id.toString(), tokens.refreshToken)
+      .then()
+      .catch((error) => {
+        this.logger.error(
+          'Failed to store refresh token',
+          error instanceof Error ? error.stack : undefined,
+          {
+            service: 'AuthService',
+            operation: 'generateTokens',
+          }
+        )
+      })
     return of(tokens)
   }
 
@@ -82,11 +97,15 @@ export class AuthService implements IAuthServicePort {
     }
   }
 
-  logout(_refreshToken: string): Observable<void> {
+  logout(refreshToken: string): Observable<void> {
     this.logger.debug('User logout', {
       service: 'AuthService',
       operation: 'logout',
     })
+    const payload = this.jwtAdapter.validateToken(refreshToken)
+    if (payload) {
+      return from(this.sessionService.revokeRefreshToken(payload.sub))
+    }
     return of(undefined)
   }
 

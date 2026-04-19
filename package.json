@@ -60,6 +60,7 @@
     "@biomejs/biome": "2.4.10",
     "@nestjs/cli": "^11.0.18",
     "@nestjs/testing": "^11.1.18",
+    "@testcontainers/redis": "^11.14.0",
     "@types/babel__core": "^7.20.5",
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
